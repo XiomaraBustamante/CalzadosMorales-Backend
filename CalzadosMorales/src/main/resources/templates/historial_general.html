@@ -7,57 +7,123 @@
     <link rel="stylesheet" th:href="@{/assets/vendors/css/vendor.bundle.base.css}">
     <link rel="stylesheet" th:href="@{/assets/css/style.css}">
     <link rel="shortcut icon" th:href="@{/assets/images/favicon.png}" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css">
     
     <style>
-        :root {
-            --purple-primary: #b66dff;
-            --success-green: #1cc88a;
-            --border-color: #ebedf2;
-        }
-
-        #contenedor-controles-dt {
-            background-color: #ffffff;
-            padding: 20px 25px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .dataTables_length label, .dataTables_filter label {
+        /* CONTROLES SUPERIORES (Basado en image_00e47e.png y image_008204.png) */
+        .dataTables_wrapper .row:first-child {
             display: flex;
-            align-items: center; gap: 15px;
-            font-weight: 600; color: #4b49ac; margin-bottom: 0;
+            align-items: center;
+            justify-content: space-between; /* Esquina a esquina */
+            margin-bottom: 25px;
+            padding: 0; 
+        }
+
+        /* "Mostrar registros" a la izquierda */
+        .dataTables_length {
+            text-align: left;
+        }
+
+        .dataTables_length label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: #343a40;
+            margin-bottom: 0;
+        }
+
+        .dataTables_length select {
+            width: 70px !important;
+            height: 35px !important;
+            border: 1px solid #ebedf2;
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        /* "Buscar" ESQUINADO TOTALMENTE A LA DERECHA */
+        .dataTables_filter {
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .dataTables_filter label {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            font-weight: 500;
+            margin-bottom: 0;
         }
 
         .dataTables_filter input {
-            border: 1px solid #d1d3e2 !important;
-            border-radius: 25px !important;
-            padding: 8px 18px !important;
-            width: 250px !important;
+            width: 200px !important; /* Tamaño fino y adecuado */
+            height: 35px !important;
+            border: 1px solid #ebedf2 !important;
+            border-radius: 4px !important;
+            padding: 5px 12px !important;
+            outline: none;
+            margin-left: 0 !important; /* Quita margen extra */
         }
 
-        #tablaHistorialAdmin thead th {
-            border: none; color: #3e4b5b; font-weight: 700;
-            text-transform: uppercase; font-size: 0.8rem;
-            padding: 15px; background-color: #f8f9fa;
+        /* PAGINACIÓN ESQUINADA (Basado en image_00dc1f.png) */
+        .dataTables_wrapper .row:last-child {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 25px;
         }
 
-        #tablaHistorialAdmin tbody tr {
-            background-color: #ffffff;
-            transition: all 0.2s ease-in-out;
+        .dataTables_info {
+            font-weight: 500;
+            color: #6c757d;
+            padding-top: 0 !important;
         }
 
-        #tablaHistorialAdmin tbody tr:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        .pagination {
+            justify-content: flex-end !important;
         }
 
-        .badge-success { background: rgba(28, 200, 138, 0.1); color: #1cc88a; border: 1px solid #1cc88a; }
-        .badge-danger { background: rgba(255, 98, 88, 0.1); color: #ff6258; border: 1px solid #ff6258; }
+        /* Estilo Morado de Paginación (image_00822c.png) */
+        .pagination .page-item.active .page-link {
+            background-color: #b66dff !important;
+            border-color: #b66dff !important;
+            color: white !important;
+        }
+
+        .pagination .page-link {
+            color: #b66dff !important;
+            background-color: #f2edf3;
+            border: none;
+            margin-left: 5px;
+            border-radius: 4px !important;
+            padding: 8px 14px;
+            font-weight: 500;
+        }
+
+        /* Badges de Estado (image_006bc0.png) */
+        .badge-status {
+            background-color: #1cc88a;
+            color: white;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .badge-danger-custom {
+            background-color: #ff6258;
+            color: white;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .linea-visible { border-top: 1.5px solid #ebedf2; margin: 20px 0; }
         
-        .linea-visible { border-top: 1px solid #ebedf2; margin: 1.5rem 0; }
+        /* Asegurar que la tabla no tenga bordes raros arriba */
+        .table { border-top: none !important; }
     </style>
 </head>
 <body>
@@ -70,62 +136,56 @@
             <div class="main-panel">
                 <div class="content-wrapper">
                     
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <div class="page-header">
                         <h3 class="page-title">
                             <span class="page-title-icon bg-gradient-primary text-white me-2">
                                 <i class="mdi mdi-history"></i>
                             </span> Historial General de Ventas
                         </h3>
-                        <div>
-                            <a th:href="@{/ventas/exportar-general}" class="btn btn-gradient-info btn-icon-text">
-                                <i class="mdi mdi-file-excel btn-icon-prepend"></i> Reporte Excel
-                            </a>
-                        </div>
+                        <a th:href="@{/ventas/exportar-general}" class="btn btn-gradient-info btn-icon-text">
+                            <i class="mdi mdi-file-excel btn-icon-prepend"></i> Reporte Excel
+                        </a>
                     </div>
 
                     <div class="row">
                         <div class="col-12 grid-margin stretch-card">
-                            <div class="card shadow-sm border-0">
+                            <div class="card shadow-sm">
                                 <div class="card-body">
-                                    <h4 class="card-title text-primary mb-0">Listado de todas las Ventas</h4>
+                                    <h4 class="card-title">Listado De Ventas</h4>
                                     <hr class="linea-visible">
 
-                                    <div id="contenedor-controles-dt"></div>
-
                                     <div class="table-responsive">
-                                        <table class="table" id="tablaHistorialAdmin" width="100%">
-                                            <thead>
+                                        <table class="table table-hover" id="tablaHistorialAdmin" width="100%">
+                                            <thead class="bg-light">
                                                 <tr>
                                                     <th>Fecha / Hora</th>
                                                     <th>Vendedor</th>
                                                     <th>Comprobante</th>
                                                     <th>Cliente</th>
-                                                    <th class="text-end">Total</th>
+                                                    <th class="text-right">Total</th>
                                                     <th class="text-center">Estado</th>
                                                     <th class="text-center">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr th:each="v : ${listaHistorial}">
-                                                    <td class="align-middle">
-                                                        <span class="font-weight-bold" th:text="${v[1]}"></span>
-                                                    </td>
-                                                    <td class="align-middle">
-                                                        <i class="mdi mdi-account-star text-primary me-1"></i>
+                                                    <td th:text="${v[1]}"></td>
+                                                    <td>
+                                                        <i class="mdi mdi-account text-primary"></i> 
                                                         <span th:text="${v[2]}"></span>
                                                     </td>
-                                                    <td class="align-middle text-dark font-weight-bold" th:text="${v[4]}"></td>
-                                                    <td class="align-middle text-muted" th:text="${v[3]}"></td>
-                                                    <td class="align-middle text-end text-primary font-weight-bold">
+                                                    <td class="font-weight-bold" th:text="${v[4]}"></td>
+                                                    <td th:text="${v[3]}"></td>
+                                                    <td class="text-right font-weight-bold">
                                                         S/ <span th:text="${#numbers.formatDecimal(v[5], 1, 'POINT', 2, 'COMMA')}"></span>
                                                     </td>
-                                                    <td class="align-middle text-center">
-                                                        <span th:class="${v[6] == 'REGISTRADA' ? 'badge badge-success' : 'badge badge-danger'}" 
-                                                              th:text="${v[6]}"></span>
+                                                    <td class="text-center">
+                                                        <span th:if="${v[6] == 'REGISTRADA'}" class="badge badge-status">DISPONIBLE</span>
+                                                        <span th:if="${v[6] != 'REGISTRADA'}" class="badge badge-danger-custom">ANULADA</span>
                                                     </td>
-                                                    <td class="align-middle text-center">
+                                                    <td class="text-center">
                                                         <a th:href="@{/comprobante/pdf(idVenta=${v[0]})}" target="_blank" 
-                                                           class="btn btn-gradient-dark btn-rounded btn-icon" title="Ver PDF">
+                                                           class="btn btn-gradient-dark btn-rounded btn-icon">
                                                             <i class="mdi mdi-printer"></i>
                                                         </a>
                                                     </td>
@@ -141,7 +201,7 @@
 
                 <footer class="footer">
                     <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2026 Calzados Morales</span>
+                        <span class="text-muted">Copyright © 2026 Calzados Morales</span>
                     </div>
                 </footer>
             </div> 
@@ -154,27 +214,24 @@
     
     <script th:inline="none">
         $(document).ready(function() {
-            var table = $('#tablaHistorialAdmin').DataTable({
-                "dom": 'lfrtip',
+            $('#tablaHistorialAdmin').DataTable({
+                // Configuración de columnas de Bootstrap para esquinado perfecto
+                "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 text-right"f>>' +
+                       '<"row"<"col-sm-12"tr>>' +
+                       '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
                 "language": {
                     "lengthMenu": "Mostrar _MENU_ registros",
                     "search": "Buscar:",
-                    "info": "Ventas totales: _TOTAL_",
-                    "paginate": { "next": "Sig", "previous": "Ant" },
-                    "emptyTable": "No se encontraron ventas en el historial"
+                    "info": "Página _PAGE_ de _PAGES_",
+                    "paginate": {
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    },
+                    "emptyTable": "No se encontraron ventas"
                 },
                 "order": [[ 0, "desc" ]],
                 "pageLength": 10
             });
-
-            var controlesHtml = '<div class="row align-items-center w-100 m-0">' +
-                                '<div id="dt-mostrar" class="col-md-6 d-flex align-items-center"></div>' +
-                                '<div id="dt-buscar" class="col-md-6 d-flex justify-content-end align-items-center"></div>' +
-                                '</div>';
-            
-            $('#contenedor-controles-dt').html(controlesHtml);
-            $('.dataTables_length').appendTo('#dt-mostrar');
-            $('.dataTables_filter').appendTo('#dt-buscar');
         });
     </script>
 </body>

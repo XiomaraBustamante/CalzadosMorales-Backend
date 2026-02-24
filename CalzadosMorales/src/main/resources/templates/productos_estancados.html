@@ -12,91 +12,122 @@
     <style>
         :root {
             --purple-primary: #b66dff;
-            --info-blue: #198ae3;
-            --warning-orange: #f6c23e;
-            --danger-red: #e74a3b;
+            --danger-red: #fe7096;
             --border-color: #ebedf2;
         }
 
-        #contenedor-controles-dt {
-            background-color: #ffffff;
-            padding: 20px 25px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        /* Estilo para que el Stock se vea llamativo */
-        .stock-badge {
-            background: linear-gradient(135deg, #f6f8fd 0%, #e9ecef 100%);
-            color: #4b49ac;
-            font-weight: 800;
-            font-size: 1rem;
-            padding: 8px 15px;
-            border-radius: 50px;
-            border: 1px solid #d1d3e2;
-            display: inline-block;
-            min-width: 45px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        /* 1. ESPACIADO PARA "MOSTRAR" Y "BUSCAR" */
+        .dataTables_wrapper .row:first-child {
+            margin-bottom: 25px !important;
+            align-items: center;
         }
 
         .dataTables_length label, .dataTables_filter label {
-            display: flex;
-            align-items: center; gap: 15px;
-            font-weight: 600; color: #4b49ac; margin-bottom: 0;
+            font-weight: normal;
+            color: #343a40;
+            font-size: 0.875rem;
+            margin-bottom: 0;
+        }
+
+        .dataTables_filter {
+            text-align: right !important;
         }
 
         .dataTables_filter input {
-            border: 1px solid #d1d3e2 !important;
-            border-radius: 25px !important;
-            padding: 8px 18px !important;
-            width: 250px !important;
+            border: 1px solid #ebedf2 !important;
+            border-radius: 4px !important;
+            padding: 6px 12px !important;
+            margin-left: 10px !important;
+            width: 200px !important;
         }
 
-        #tablaEstancados thead th {
-            border: none; color: #3e4b5b; font-weight: 700;
-            text-transform: uppercase; font-size: 0.8rem;
-            padding: 15px; background-color: #f8f9fa; 
+        /* 2. CORRECCIÓN DE LA PAGINACIÓN Y VISIBILIDAD DEL NÚMERO 1 */
+        .dataTables_wrapper .dataTables_paginate {
+            margin-top: 25px !important;
+            display: flex;
+            justify-content: flex-end;
         }
 
-        .dias-badge { font-weight: 800; font-size: 1.1rem; }
-        .alerta-baja { color: var(--info-blue); }
-        .alerta-media { color: var(--warning-orange); }
-        .alerta-critica { color: var(--danger-red); }
+        .pagination {
+            display: flex;
+            list-style: none;
+            border-radius: 4px;
+            overflow: hidden;
+            gap: 2px; /* Espacio entre botones */
+        }
 
-        .linea-visible { border-top: 1px solid #ebedf2; margin: 1.5rem 0; }
+        .page-item .page-link {
+            padding: 8px 16px !important;
+            color: #b66dff !important;
+            background-color: #f3f0ff !important;
+            border: none !important;
+            font-weight: 500;
+            min-width: 40px;
+            text-align: center;
+            display: block;
+        }
+
+        /* Asegura que el número 1 sea visible con fondo morado al estar activo */
+        .page-item.active .page-link {
+            background-color: #b66dff !important;
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .page-item.disabled .page-link {
+            background-color: #f8f9fa !important;
+            color: #b66dff !important;
+            opacity: 0.7;
+        }
+
+        /* 3. VISIBILIDAD DE "ÚLTIMA SALIDA" Y TABLA */
+        .badge-salida {
+            background-color: #eeeeee; 
+            color: #333333; 
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .stock-badge {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+
+        .dias-badge { font-weight: 700; font-size: 0.95rem; }
+        .alerta-baja { color: #047edf; }
+        .alerta-media { color: #ffab2d; }
+        .alerta-critica { color: #fe7096; }
     </style>
 </head>
 <body>
     <div class="container-scroller">
         <nav th:replace="~{fragmentos/navbar :: navbar}"></nav>
-        
         <div class="container-fluid page-body-wrapper">
             <nav th:replace="~{fragmentos/sidebar :: sidebar}"></nav>
-
             <div class="main-panel">
                 <div class="content-wrapper">
-                    
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <div class="page-header">
                         <h3 class="page-title">
                             <span class="page-title-icon bg-gradient-danger text-white me-2">
                                 <i class="mdi mdi-package-variant-closed"></i>
                             </span> Productos Estancados
                         </h3>
                     </div>
-
                     <div class="row">
                         <div class="col-12 grid-margin stretch-card">
-                            <div class="card shadow-sm border-0">
+                            <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title text-primary mb-0">Análisis de Inventario</h4>
-                                    <hr class="linea-visible">
-
-                                    <div id="contenedor-controles-dt"></div>
-
+                                    <h4 class="card-title">Análisis de Inventario</h4>
+                                    
                                     <div class="table-responsive">
-                                        <table class="table" id="tablaEstancados" width="100%">
+                                        <table class="table table-hover" id="tablaEstancados" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th>Producto</th>
@@ -108,20 +139,16 @@
                                             </thead>
                                             <tbody>
                                                 <tr th:each="p : ${listaEstancados}">
-                                                    <td class="align-middle">
-                                                        <div class="font-weight-bold text-dark" th:text="${p[1]}">Nombre</div>
+                                                    <td class="py-3">
+                                                        <span class="font-weight-bold" th:text="${p[1]}">Nombre</span><br>
                                                         <small class="text-muted" th:text="${p[2]}">Categoría</small>
                                                     </td>
-                                                    <td class="align-middle text-center">
-                                                        <span class="stock-badge" th:text="${p[3]}">0</span>
+                                                    <td class="text-center"><span class="stock-badge" th:text="${p[3]}">0</span></td>
+                                                    <td class="text-center"><span class="text-dark font-weight-bold" th:text="'S/ ' + ${p[4]}">S/ 0.00</span></td>
+                                                    <td class="text-center">
+                                                        <span class="badge-salida" th:text="${p[5]}">Sin Ventas</span>
                                                     </td>
-                                                    <td class="align-middle text-center">
-                                                        <span class="text-dark font-weight-bold" th:text="'S/ ' + ${p[4]}">S/ 0.00</span>
-                                                    </td>
-                                                    <td class="align-middle text-center">
-                                                        <span class="text-muted" th:text="${p[5]}">Sin Ventas</span>
-                                                    </td>
-                                                    <td class="align-middle text-center">
+                                                    <td class="text-center">
                                                         <div th:class="${p[6] >= 120 ? 'dias-badge alerta-critica' : (p[6] >= 60 ? 'dias-badge alerta-media' : 'dias-badge alerta-baja')}">
                                                             <span th:text="${p[6] == 999 ? '∞' : p[6]}">0</span> 
                                                             <small th:if="${p[6] != 999}">días</small>
@@ -146,27 +173,20 @@
     
     <script th:inline="none">
         $(document).ready(function() {
-            if ($('#tablaEstancados tbody tr').length > 0) {
-                var table = $('#tablaEstancados').DataTable({
-                    "language": {
-                        "lengthMenu": "Mostrar _MENU_ registros",
-                        "search": "Buscar:",
-                        "info": "Mostrando _TOTAL_ productos",
-                        "paginate": { "next": "Sig.", "previous": "Ant." }
-                    },
-                    "order": [[ 4, "desc" ]], 
-                    "pageLength": 10
-                });
-
-                var controlesHtml = '<div class="row w-100 m-0">' +
-                                    '<div id="dt-mostrar" class="col-md-6"></div>' +
-                                    '<div id="dt-buscar" class="col-md-6 d-flex justify-content-end"></div>' +
-                                    '</div>';
-                
-                $('#contenedor-controles-dt').html(controlesHtml);
-                $('.dataTables_length').appendTo('#dt-mostrar');
-                $('.dataTables_filter').appendTo('#dt-buscar');
-            }
+            $('#tablaEstancados').DataTable({
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros",
+                    "search": "Buscar: ",
+                    "info": "Página _PAGE_ de _PAGES_",
+                    "paginate": { 
+                        "next": "Siguiente", 
+                        "previous": "Anterior" 
+                    }
+                },
+                "order": [[ 4, "desc" ]], 
+                "pageLength": 10,
+                "dom": '<"row"<"col-sm-6"l><"col-sm-6 text-right"f>>rt<"row"<"col-sm-6"i><"col-sm-6"p>>'
+            });
         });
     </script>
 </body>

@@ -7,87 +7,110 @@
     <link rel="stylesheet" th:href="@{/assets/vendors/css/vendor.bundle.base.css}">
     <link rel="stylesheet" th:href="@{/assets/css/style.css}">
     <link rel="shortcut icon" th:href="@{/assets/images/favicon.png}" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css">
     
     <style>
-        :root {
-            --purple-primary: #b66dff;
-            --success-green: #1cc88a;
-            --border-color: #ebedf2;
-            --bg-light: #f9fbfd;
-        }
-
-        /* Contenedor de controles DataTables (Estilo Imagen 1) */
-        #contenedor-controles-dt {
-            background-color: #ffffff;
-            padding: 15px 25px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        /* Estilo para los textos 'Mostrar' y 'Buscar' */
-        .dataTables_length label, .dataTables_filter label {
+        /* CONTROLES SUPERIORES (Basado en image_008204.png y image_00e47e.png) */
+        .dataTables_wrapper .row:first-child {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: 600;
-            color: #4b49ac; /* Morado de la imagen */
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 0 5px;
+        }
+
+        /* "Mostrar" a la izquierda */
+        .dataTables_length label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: #343a40;
             margin-bottom: 0;
         }
 
-        /* Input de búsqueda estilo píldora (Imagen 3) */
-        .dataTables_filter input {
-            border: 1px solid #d1d3e2 !important;
-            border-radius: 25px !important;
-            padding: 8px 20px !important;
-            width: 280px !important;
-            transition: all 0.3s ease;
-            outline: none !important;
-        }
-
-        .dataTables_filter input:focus {
-            border-color: var(--purple-primary) !important;
-            box-shadow: 0 0 0 0.2rem rgba(182, 109, 255, 0.15) !important;
-        }
-
-        /* Select de cantidad de registros */
         .dataTables_length select {
-            border: 1px solid #d1d3e2 !important;
-            border-radius: 8px !important;
-            padding: 5px !important;
-            outline: none !important;
+            width: 70px !important;
+            height: 35px !important;
+            border: 1px solid #ebedf2;
+            border-radius: 4px;
         }
 
-        /* Colores de bloques horarios */
-        .bloque-manana { color: #ff9f43; font-weight: bold; }
-        .bloque-almuerzo { color: #1cc88a; font-weight: bold; }
-        .bloque-tarde { color: #4b49ac; font-weight: bold; }
-        .bloque-cierre { color: #ff6258; font-weight: bold; }
+        /* "Buscar" ESQUINADO A LA DERECHA */
+        .dataTables_filter {
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+        }
 
-        #tablaAnalisisHorario thead th {
+        .dataTables_filter label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+
+        .dataTables_filter input {
+            width: 200px !important;
+            height: 35px !important;
+            border: 1px solid #ebedf2 !important;
+            border-radius: 4px !important;
+            padding: 5px 12px !important;
+            outline: none;
+        }
+
+        /* PAGINACIÓN ESQUINADA Y MORADA (Basado en image_00dc1f.png y image_00822c.png) */
+        .dataTables_wrapper .row:last-child {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+
+        .pagination {
+            justify-content: flex-end !important;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #b66dff !important;
+            border-color: #b66dff !important;
+            color: white !important;
+        }
+
+        .pagination .page-link {
+            color: #b66dff !important;
+            background-color: #f2edf3;
             border: none;
-            color: #3e4b5b;
+            margin-left: 5px;
+            border-radius: 4px !important;
+            padding: 8px 14px;
+            font-weight: 500;
+        }
+
+        /* ESTILOS DE LA TABLA */
+        #tablaAnalisisHorario thead th {
+            background-color: #f8f9fa;
             font-weight: 700;
+            color: #3e4b5b;
             text-transform: uppercase;
             font-size: 0.8rem;
-            padding: 15px;
-            background-color: #f8f9fa;
         }
 
-        #tablaAnalisisHorario td {
-            vertical-align: middle;
-            padding: 15px !important;
+        /* Badges de bloque horario (Similar al estilo de image_006bc0.png) */
+        .bloque-badge {
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-weight: bold;
+            font-size: 11px;
+            color: white;
+            display: inline-block;
         }
+        .bg-manana { background-color: #ff9f43; }
+        .bg-almuerzo { background-color: #1cc88a; } /* Verde como "DISPONIBLE" */
+        .bg-tarde { background-color: #b66dff; }
+        .bg-cierre { background-color: #ff6258; }
 
-        .monto-destacado {
-            font-weight: 700;
-            color: #333;
-            font-size: 1rem;
-        }
-
-        .linea-visible { border-top: 1px solid #ebedf2; margin: 1.5rem 0; }
+        .linea-visible { border-top: 1.5px solid #ebedf2; margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -100,7 +123,7 @@
             <div class="main-panel">
                 <div class="content-wrapper">
                     
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <div class="page-header">
                         <h3 class="page-title">
                             <span class="page-title-icon bg-gradient-primary text-white me-2">
                                 <i class="mdi mdi-chart-line"></i>
@@ -112,39 +135,36 @@
                         <div class="col-12 grid-margin stretch-card">
                             <div class="card shadow-sm border-0">
                                 <div class="card-body">
-                                    <h4 class="card-title text-primary mb-0">Rendimiento por Bloques y Horas</h4>
-                                    <p class="text-muted small">Visualiza en qué momentos del día se generan mayores ingresos.</p>
+                                    <h4 class="card-title">Rendimiento por Bloques y Horas</h4>
                                     <hr class="linea-visible">
 
-                                    <div id="contenedor-controles-dt"></div>
-
                                     <div class="table-responsive">
-                                        <table class="table" id="tablaAnalisisHorario" width="100%">
+                                        <table class="table table-hover" id="tablaAnalisisHorario" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th>Hora (24h)</th>
                                                     <th>Bloque Horario</th>
                                                     <th class="text-center">N° Ventas</th>
-                                                    <th class="text-end">Monto Recaudado</th>
+                                                    <th class="text-right">Monto Recaudado</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr th:each="a : ${listaAnalisis}">
-                                                    <td class="align-middle font-weight-bold">
-                                                        <i class="mdi mdi-clock-outline me-2 text-primary"></i>
+                                                    <td class="font-weight-bold text-primary">
+                                                        <i class="mdi mdi-clock-outline me-1"></i>
                                                         <span th:text="${a[0]} + ':00'"></span>
                                                     </td>
-                                                    <td class="align-middle">
-                                                        <span th:class="${a[1] == 'Mañana Temprano' ? 'bloque-manana' : 
-                                                                        (a[1] == 'Hora Almuerzo' ? 'bloque-almuerzo' : 
-                                                                        (a[1] == 'Tarde/Noche' ? 'bloque-tarde' : 'bloque-cierre'))}"
+                                                    <td>
+                                                        <span th:class="'bloque-badge ' + ${a[1] == 'Mañana Temprano' ? 'bg-manana' : 
+                                                                        (a[1] == 'Hora Almuerzo' ? 'bg-almuerzo' : 
+                                                                        (a[1] == 'Tarde/Noche' ? 'bg-tarde' : 'bg-cierre'))}"
                                                               th:text="${a[1]}">
                                                         </span>
                                                     </td>
-                                                    <td class="align-middle text-center">
-                                                        <div class="badge badge-pill badge-outline-dark" th:text="${a[2]}">0</div>
+                                                    <td class="text-center">
+                                                        <span class="badge badge-outline-dark" th:text="${a[2]}">0</span>
                                                     </td>
-                                                    <td class="align-middle text-end monto-destacado">
+                                                    <td class="text-right font-weight-bold text-dark">
                                                         S/ <span th:text="${#numbers.formatDecimal(a[3], 1, 'COMMA', 2, 'POINT')}">0.00</span>
                                                     </td>
                                                 </tr>
@@ -159,7 +179,7 @@
                 
                 <footer class="footer">
                     <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2026 Calzados Morales</span>
+                        <span class="text-muted">Copyright © 2026 Calzados Morales</span>
                     </div>
                 </footer>
             </div> 
@@ -172,33 +192,24 @@
     
     <script th:inline="none">
         $(document).ready(function() {
-            var table = $('#tablaAnalisisHorario').DataTable({
-                "dom": 'lfrtip',
+            $('#tablaAnalisisHorario').DataTable({
+                // Esto garantiza que el Buscar y el Mostrar se alineen a los extremos
+                "dom": '<"row"<"col-sm-6"l><"col-sm-6 text-right"f>>' +
+                       '<"row"<"col-sm-12"tr>>' +
+                       '<"row"<"col-sm-6"i><"col-sm-6"p>>',
                 "language": {
                     "lengthMenu": "Mostrar _MENU_ registros",
                     "search": "Buscar:",
-                    "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                    "paginate": { "next": "Sig.", "previous": "Ant." },
-                    "emptyTable": "No hay datos disponibles para el análisis"
+                    "info": "Página _PAGE_ de _PAGES_",
+                    "paginate": { 
+                        "next": "Siguiente", 
+                        "previous": "Anterior" 
+                    },
+                    "emptyTable": "No hay datos para el análisis"
                 },
                 "order": [[ 0, "asc" ]],
                 "pageLength": 12
             });
-
-            // Inyectamos la estructura de columnas en el contenedor blanco
-            var controlesHtml = '<div class="row align-items-center w-100 m-0">' +
-                                '<div id="dt-mostrar" class="col-md-6 d-flex align-items-center justify-content-start"></div>' +
-                                '<div id="dt-buscar" class="col-md-6 d-flex justify-content-end align-items-center"></div>' +
-                                '</div>';
-            
-            $('#contenedor-controles-dt').html(controlesHtml);
-            
-            // Movemos los elementos nativos de DataTables a nuestras columnas custom
-            $('.dataTables_length').appendTo('#dt-mostrar');
-            $('.dataTables_filter').appendTo('#dt-buscar');
-            
-            // Aplicar estilos extra a los inputs de búsqueda para que se vean como la Imagen 3
-            $('.dataTables_filter input').attr('placeholder', 'Escriba para filtrar...');
         });
     </script>
 </body>

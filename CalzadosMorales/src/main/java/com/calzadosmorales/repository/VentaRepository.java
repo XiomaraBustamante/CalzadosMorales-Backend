@@ -26,8 +26,8 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     @Query(value = "CALL sp_ProductoEstrellaVendedor(:id)", nativeQuery = true)
     String getProductoEstrella(@Param("id") int idVendedor);
 
-    @Query(value = "CALL sp_MiMejorCliente(:id)", nativeQuery = true)
-    String getMejorCliente(@Param("id") int idVendedor);
+    @Query(value = "CALL sp_MiMejorCliente(:idVendedor)", nativeQuery = true)
+    String getMejorCliente(@Param("idVendedor") int idVendedor);
 
     @Query(value = "CALL sp_RendimientoVendedorComparativo(:id)", nativeQuery = true)
     List<Object[]> getRendimientoComparativo(@Param("id") int idVendedor);

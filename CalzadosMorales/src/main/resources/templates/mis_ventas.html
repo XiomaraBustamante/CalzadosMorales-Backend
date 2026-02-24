@@ -12,127 +12,114 @@
     <style>
         :root {
             --purple-primary: #b66dff;
-            --success-green: #1cc88a;
             --border-color: #ebedf2;
-            --bg-light: #f9fbfd;
         }
 
-        #contenedor-controles-dt {
-            background-color: #ffffff;
-            padding: 20px 25px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .dataTables_length label, .dataTables_filter label {
+        /* 1. POSICIONAMIENTO DEL BUSCADOR A LA DERECHA Y SELECTOR A LA IZQUIERDA */
+        .dataTables_wrapper .row:first-child {
             display: flex;
             align-items: center;
-            gap: 15px;
-            font-weight: 600;
-            color: #4b49ac;
-            margin-bottom: 0;
+            justify-content: space-between;
+            margin-bottom: 20px !important;
+            padding: 0 5px;
+        }
+
+        .dataTables_filter {
+            text-align: right !important;
+            float: right !important;
+        }
+
+        .dataTables_length {
+            float: left !important;
+        }
+
+        /* Estilo de los inputs y etiquetas */
+        .dataTables_length label, .dataTables_filter label {
+            font-weight: normal;
+            color: #343a40;
+            font-size: 0.875rem;
+            margin: 0;
         }
 
         .dataTables_filter input {
-            border: 1px solid #d1d3e2 !important;
-            border-radius: 25px !important;
-            padding: 8px 18px !important;
-            width: 250px !important;
-            transition: all 0.3s ease;
+            border: 1px solid #ebedf2 !important;
+            border-radius: 4px !important;
+            padding: 6px 12px !important;
+            margin-left: 10px !important;
+            width: 210px !important;
         }
 
         .dataTables_length select {
-            border: 1px solid #d1d3e2 !important;
-            border-radius: 8px !important;
-            padding: 5px !important;
+            border: 1px solid #ebedf2 !important;
+            border-radius: 4px !important;
+            padding: 4px 8px !important;
+            margin: 0 10px !important;
         }
 
-        #tablaVentasVendedor {
-            border-collapse: separate !important;
-            border-spacing: 0 12px !important;
+        /* 2. ESTILO DE LA PAGINACIÓN (MORADO VIBRANTE) */
+        .dataTables_wrapper .dataTables_paginate {
+            margin-top: 20px !important;
+            display: flex;
+            justify-content: flex-end;
         }
 
-        /* CAMBIO: Color de fondo en la cabecera (Segunda imagen) */
-        #tablaVentasVendedor thead th {
-            border: none;
-            color: #3e4b5b;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            padding: 15px;
-            background-color: #f8f9fa; /* Fondo gris suave */
+        .pagination {
+            display: flex;
+            gap: 2px;
+            list-style: none;
         }
 
-        #tablaVentasVendedor tbody tr {
-            background-color: #ffffff;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-
-        #tablaVentasVendedor tbody tr:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            background-color: #ffffff !important;
-        }
-
-        #tablaVentasVendedor td {
+        .page-item .page-link {
+            padding: 8px 16px !important;
+            color: #b66dff !important;
+            background-color: #f3f0ff !important;
             border: none !important;
-            padding: 15px 15px !important;
-            vertical-align: middle;
+            font-weight: 500;
+            border-radius: 4px !important;
         }
 
-        #tablaVentasVendedor tbody tr td:first-child { border-radius: 10px 0 0 10px; }
-        #tablaVentasVendedor tbody tr td:last-child { border-radius: 0 10px 10px 0; }
+        .page-item.active .page-link {
+            background-color: #b66dff !important; /* Morado de la imagen */
+            color: white !important;
+            font-weight: bold;
+        }
 
-        .fecha-principal {
-            display: block;
-            font-weight: 700;
+        .page-item.disabled .page-link {
+            background-color: #f8f9fa !important;
+            opacity: 0.6;
+        }
+
+        /* 3. ESTILOS DE LA TABLA */
+        #tablaVentasVendedor thead th {
+            border-top: none;
+            border-bottom: 1px solid #f2f2f2;
             color: #333;
-            font-size: 0.95rem;
-            margin-bottom: 2px;
-        }
-        .hora-secundaria {
-            display: block;
-            color: #a0a0a0;
-            font-size: 0.85rem;
+            font-weight: 700;
+            background-color: transparent;
         }
 
-        .badge { 
-            padding: 8px 14px; 
-            border-radius: 8px; 
-            font-weight: 600; 
-            text-transform: capitalize;
+        #tablaVentasVendedor tbody tr td {
+            vertical-align: middle;
+            border-top: 1px solid #f2f2f2;
         }
-        .badge-success { background: rgba(28, 200, 138, 0.1); color: #1cc88a; border: 1px solid #1cc88a; }
-        .badge-danger { background: rgba(255, 98, 88, 0.1); color: #ff6258; border: 1px solid #ff6258; }
 
-        .btn-inverse-info {
-            width: 38px;
-            height: 38px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            border: 1px solid #19d2ea;
-            color: #19d2ea;
-            transition: all 0.3s;
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
         }
-        .btn-inverse-info:hover { background: #19d2ea; color: white; }
-
-        .border-left-success { border-left: 0.4rem solid var(--success-green) !important; }
-        .text-success-custom { color: var(--success-green) !important; }
+        .bg-registrada { background-color: #e8fadf; color: #3cd139; }
+        .bg-anulada { background-color: #ffe7e7; color: #fe7c96; }
+        
         .linea-visible { border-top: 1px solid #ebedf2; margin: 1.5rem 0; }
     </style>
 </head>
 <body>
     <div class="container-scroller">
         <nav th:replace="~{fragmentos/navbar :: navbar}"></nav>
-        
         <div class="container-fluid page-body-wrapper">
             <nav th:replace="~{fragmentos/sidebar :: sidebar}"></nav>
-
             <div class="main-panel">
                 <div class="content-wrapper">
                     
@@ -143,30 +130,9 @@
                             </span> Mis Ventas Realizadas
                         </h3>
                         <div>
-                            <a th:href="@{/ventas/exportar-comisiones}" class="btn btn-gradient-success btn-icon-text">
-                                <i class="mdi mdi-file-excel btn-icon-prepend"></i> Exportar
+                            <a th:href="@{/ventas/nueva}" class="btn btn-gradient-primary btn-sm font-weight-bold">
+                                + Nueva Venta
                             </a>
-                            <a th:href="@{/ventas/nueva}" class="btn btn-gradient-primary btn-icon-text ms-2">
-                                <i class="mdi mdi-plus btn-icon-prepend"></i> Nueva Venta
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-xl-3 col-md-6">
-                            <div class="card border-left-success shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success-custom text-uppercase mb-1">Vendido Hoy</div>
-                                            <div class="h4 mb-0 font-weight-bold text-gray-800">
-                                                S/ <span th:text="${#numbers.formatDecimal(totalHoy, 1, 'POINT', 2, 'COMMA')}">0.00</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto"><i class="mdi mdi-currency-usd mdi-36px text-gray-300"></i></div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -174,13 +140,11 @@
                         <div class="col-12 grid-margin stretch-card">
                             <div class="card shadow-sm border-0">
                                 <div class="card-body">
-                                    <h4 class="card-title text-primary mb-0">Historial de Comprobantes Emitidos</h4>
+                                    <h4 class="card-title text-primary mb-0">Historial de Comprobantes</h4>
                                     <hr class="linea-visible">
 
-                                    <div id="contenedor-controles-dt"></div>
-
                                     <div class="table-responsive">
-                                        <table class="table" id="tablaVentasVendedor" width="100%">
+                                        <table class="table table-hover" id="tablaVentasVendedor" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th>Fecha / Hora</th>
@@ -188,28 +152,25 @@
                                                     <th>Cliente</th>
                                                     <th class="text-end">Total</th>
                                                     <th class="text-center">Estado</th>
-                                                    <th class="text-center">Acciones</th>
+                                                    <th class="text-center">PDF</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr th:each="v : ${listaVentas}">
-                                                    <td class="align-middle">
-                                                        <span class="fecha-principal" th:text="${#strings.arraySplit(v[1], ' ')[0]}"></span>
-                                                        <span class="hora-secundaria" th:text="${#strings.substringAfter(v[1], ' ')} + ' ' + (${#strings.contains(v[1], 'p. m.')} ? '' : '')"></span>
+                                                    <td>
+                                                        <span class="text-dark font-weight-bold" th:text="${#strings.arraySplit(v[1], ' ')[0]}"></span><br>
+                                                        <small class="text-muted" th:text="${#strings.substringAfter(v[1], ' ')}"></small>
                                                     </td>
-                                                    <td class="align-middle font-weight-bold text-dark" th:text="${v[2]}"></td>
-                                                    <td class="align-middle text-muted" th:text="${v[3]}"></td>
-                                                    <td class="align-middle text-end text-primary font-weight-bold">
-                                                        S/ <span th:text="${#numbers.formatDecimal(v[4], 1, 'POINT', 2, 'COMMA')}"></span>
-                                                    </td>
-                                                    <td class="align-middle text-center">
-                                                        <span th:class="${v[5] == 'REGISTRADA' ? 'badge badge-success' : 'badge badge-danger'}" 
+                                                    <td class="font-weight-bold text-dark" th:text="${v[2]}"></td>
+                                                    <td class="text-muted" th:text="${v[3]}"></td>
+                                                    <td class="text-end text-dark font-weight-bold" th:text="'S/ ' + ${#numbers.formatDecimal(v[4], 1, 'POINT', 2, 'COMMA')}"></td>
+                                                    <td class="text-center">
+                                                        <span th:class="${v[5] == 'REGISTRADA' ? 'badge-status bg-registrada' : 'badge-status bg-anulada'}" 
                                                               th:text="${v[5]}"></span>
                                                     </td>
-                                                    <td class="align-middle text-center">
-                                                        <a th:href="@{/comprobante/pdf(idVenta=${v[0]})}" target="_blank" 
-                                                           class="btn btn-inverse-info btn-icon" title="Ver PDF">
-                                                            <i class="mdi mdi-file-pdf"></i>
+                                                    <td class="text-center">
+                                                        <a th:href="@{/comprobante/pdf(idVenta=${v[0]})}" target="_blank" class="text-info">
+                                                            <i class="mdi mdi-file-pdf mdi-24px"></i>
                                                         </a>
                                                     </td>
                                                 </tr>
@@ -221,12 +182,6 @@
                         </div>
                     </div>
                 </div> 
-                
-                <footer class="footer">
-                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2026 Calzados Morales</span>
-                    </div>
-                </footer>
             </div> 
         </div> 
     </div> 
@@ -237,27 +192,18 @@
     
     <script th:inline="none">
         $(document).ready(function() {
-            var table = $('#tablaVentasVendedor').DataTable({
-                "dom": 'lfrtip',
+            $('#tablaVentasVendedor').DataTable({
                 "language": {
                     "lengthMenu": "Mostrar _MENU_ registros",
                     "search": "Buscar:",
-                    "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                    "paginate": { "next": "Siguiente", "previous": "Anterior" },
-                    "emptyTable": "No se encontraron ventas registradas"
+                    "info": "Página _PAGE_ de _PAGES_",
+                    "paginate": { "next": "Siguiente", "previous": "Anterior" }
                 },
                 "order": [[ 0, "desc" ]],
-                "pageLength": 10
+                "pageLength": 10,
+                // Definición del DOM para asegurar el buscador a la derecha
+                "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'
             });
-
-            var controlesHtml = '<div class="row align-items-center w-100 m-0">' +
-                                '<div id="dt-mostrar" class="col-md-6 d-flex align-items-center"></div>' +
-                                '<div id="dt-buscar" class="col-md-6 d-flex justify-content-end align-items-center"></div>' +
-                                '</div>';
-            
-            $('#contenedor-controles-dt').html(controlesHtml);
-            $('.dataTables_length').appendTo('#dt-mostrar');
-            $('.dataTables_filter').appendTo('#dt-buscar');
         });
     </script>
 </body>

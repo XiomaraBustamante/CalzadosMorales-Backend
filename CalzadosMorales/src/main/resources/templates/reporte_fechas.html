@@ -7,47 +7,109 @@
     <link rel="stylesheet" th:href="@{/assets/vendors/css/vendor.bundle.base.css}">
     <link rel="stylesheet" th:href="@{/assets/css/style.css}">
     <link rel="shortcut icon" th:href="@{/assets/images/favicon.png}" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css">
     
     <style>
-        :root {
-            --purple-primary: #b66dff;
-            --success-green: #1cc88a;
-            --border-color: #ebedf2;
-            --bg-light: #f9fbfd;
-        }
-
-        .card-filters {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        /* CONTROLES SUPERIORES (Basado en image_008204.png y image_00e47e.png) */
+        .dataTables_wrapper .row:first-child {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 25px;
+            padding: 0;
         }
 
-        #contenedor-controles-dt {
-            background-color: #ffffff;
-            padding: 20px 25px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-bottom: 30px;
-        }
-
-        #tablaReporteFechas thead th {
-            border: none;
+        /* "Mostrar" como combito a la izquierda */
+        .dataTables_length label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
             color: #3e4b5b;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            padding: 15px;
-            background-color: #f8f9fa;
+            margin-bottom: 0;
         }
 
-        .border-left-success { border-left: 0.4rem solid var(--success-green) !important; }
-        .text-success-custom { color: var(--success-green) !important; }
-        
-        .badge-success { background: rgba(28, 200, 138, 0.1); color: #1cc88a; border: 1px solid #1cc88a; padding: 8px 12px; }
-        .badge-danger { background: rgba(255, 98, 88, 0.1); color: #ff6258; border: 1px solid #ff6258; padding: 8px 12px; }
+        .dataTables_length select {
+            width: 70px !important;
+            height: 35px !important;
+            border: 1px solid #ebedf2;
+            border-radius: 4px;
+        }
+
+        /* "Buscar" esquinado a la derecha con tamaño adecuado */
+        .dataTables_filter {
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .dataTables_filter label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+
+        .dataTables_filter input {
+            width: 200px !important;
+            height: 35px !important;
+            border: 1px solid #ebedf2 !important;
+            border-radius: 4px !important;
+            padding: 5px 12px !important;
+            outline: none;
+        }
+
+        /* PAGINACIÓN MORADA Y ESQUINADA (Basado en image_00dc1f.png y image_00822c.png) */
+        .dataTables_wrapper .row:last-child {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+
+        .pagination {
+            justify-content: flex-end !important;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #b66dff !important;
+            border-color: #b66dff !important;
+            color: white !important;
+        }
+
+        .pagination .page-link {
+            color: #b66dff !important;
+            background-color: #f2edf3;
+            border: none;
+            margin-left: 5px;
+            border-radius: 4px !important;
+            padding: 8px 14px;
+            font-weight: 500;
+        }
+
+        /* ESTADO ESTILO "DISPONIBLE" (Basado en image_006bc0.png) */
+        .badge-status-v {
+            background-color: #1cc88a;
+            color: white;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .badge-danger-v {
+            background-color: #ff6258;
+            color: white;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .border-left-success { border-left: 0.4rem solid #1cc88a !important; }
+        .linea-visible { border-top: 1.5px solid #ebedf2; margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -60,44 +122,49 @@
             <div class="main-panel">
                 <div class="content-wrapper">
                     
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h3 class="page-title">Reporte de Ventas por Fechas</h3>
+                    <div class="page-header">
+                        <h3 class="page-title">
+                            <span class="page-title-icon bg-gradient-primary text-white me-2">
+                                <i class="mdi mdi-calendar-range"></i>
+                            </span> Reporte de Ventas por Fechas
+                        </h3>
                     </div>
 
-                    <div class="card card-filters shadow-sm">
-                        <h5 class="text-primary mb-3">Filtros de Búsqueda</h5>
-                        <form th:action="@{/ventas/reporte-fechas}" method="get" class="row align-items-end">
-                            <div class="col-md-4">
-                                <label class="font-weight-bold">Desde:</label>
-                                <input type="date" name="inicio" class="form-control" th:value="${fechaInicio}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="font-weight-bold">Hasta:</label>
-                                <input type="date" name="fin" class="form-control" th:value="${fechaFin}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-gradient-primary btn-icon-text w-100">
-                                    <i class="mdi mdi-magnify btn-icon-prepend"></i> Consultar
-                                </button>
-                            </div>
-                        </form>
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary mb-3">Filtros de Búsqueda</h5>
+                            <form th:action="@{/ventas/reporte-fechas}" method="get" class="row align-items-end">
+                                <div class="col-md-4">
+                                    <label class="font-weight-bold">Desde:</label>
+                                    <input type="date" name="inicio" class="form-control" th:value="${fechaInicio}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="font-weight-bold">Hasta:</label>
+                                    <input type="date" name="fin" class="form-control" th:value="${fechaFin}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-gradient-primary btn-icon-text w-100">
+                                        <i class="mdi mdi-magnify btn-icon-prepend"></i> Consultar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <div th:if="${busquedaRealizada}">
-                        
                         <div class="row mb-4">
                             <div class="col-12">
                                 <div class="card border-left-success shadow h-100 py-2">
                                     <div class="card-body">
                                         <div class="row no-gutters align-items-center">
                                             <div class="col mr-2">
-                                                <div class="text-xs font-weight-bold text-success-custom text-uppercase mb-1">Total vendido en el periodo</div>
-                                                <div class="h3 mb-0 font-weight-bold text-gray-800">
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total vendido en el periodo</div>
+                                                <div class="h3 mb-0 font-weight-bold text-dark">
                                                     S/ <span th:text="${#numbers.formatDecimal(totalSumatoria, 1, 'COMMA', 2, 'POINT')}">0.00</span>
                                                 </div>
                                             </div>
                                             <div class="col-auto">
-                                                <i class="mdi mdi-cash-multiple mdi-36px text-gray-300"></i>
+                                                <i class="mdi mdi-cash-multiple mdi-36px text-muted"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -105,49 +172,45 @@
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-12 grid-margin stretch-card">
-                                <div class="card shadow-sm border-0">
-                                    <div class="card-body">
-                                        <h4 class="card-title text-primary">Detalle de Ventas Encontradas</h4>
-                                        <hr>
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body">
+                                <h4 class="card-title">Detalle de Ventas Encontradas</h4>
+                                <hr class="linea-visible">
 
-                                        <div id="contenedor-controles-dt"></div>
-
-                                        <div class="table-responsive">
-                                            <table class="table" id="tablaReporteFechas" width="100%">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Fecha</th>
-                                                        <th>Vendedor</th>
-                                                        <th>Cliente</th>
-                                                        <th>Comprobante</th>
-                                                        <th class="text-end">Monto</th>
-                                                        <th class="text-center">Estado</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr th:each="v : ${listaVentas}">
-                                                        <td th:text="${v[0]}"></td> 
-                                                        <td th:text="${v[1]}"></td> 
-                                                        <td th:text="${v[2]}"></td> 
-                                                        <td class="font-weight-bold" th:text="${v[3]}"></td> 
-                                                        <td class="text-end font-weight-bold text-dark">
-                                                            S/ <span th:text="${#numbers.formatDecimal(v[4], 1, 'COMMA', 2, 'POINT')}"></span>
-                                                        </td>
-                                                        <td class="text-center">
-                                                            <span th:class="${v[5] == 'REGISTRADA' ? 'badge badge-success' : 'badge badge-danger'}" 
-                                                                  th:text="${v[5]}"></span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="tablaReporteFechas" width="100%">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Vendedor</th>
+                                                <th>Cliente</th>
+                                                <th>Comprobante</th>
+                                                <th class="text-right">Monto</th>
+                                                <th class="text-center">Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="v : ${listaVentas}">
+                                                <td th:text="${v[0]}"></td> 
+                                                <td th:text="${v[1]}"></td> 
+                                                <td th:text="${v[2]}"></td> 
+                                                <td class="font-weight-bold" th:text="${v[3]}"></td> 
+                                                <td class="text-right font-weight-bold text-dark">
+                                                    S/ <span th:text="${#numbers.formatDecimal(v[4], 1, 'COMMA', 2, 'POINT')}"></span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span th:if="${v[5] == 'REGISTRADA'}" class="badge badge-status-v">DISPONIBLE</span>
+                                                    <span th:if="${v[5] != 'REGISTRADA'}" class="badge badge-danger-v">ANULADA</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-                    </div> <div th:if="${not busquedaRealizada}" class="text-center py-5">
+                    </div>
+
+                    <div th:if="${not busquedaRealizada}" class="text-center py-5">
                         <i class="mdi mdi-calendar-search text-muted mdi-48px"></i>
                         <h4 class="text-muted mt-3">Seleccione un rango de fechas para generar el reporte</h4>
                     </div>
@@ -156,7 +219,7 @@
                 
                 <footer class="footer">
                     <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2026 Calzados Morales</span>
+                        <span class="text-muted">Copyright © 2026 Calzados Morales</span>
                     </div>
                 </footer>
             </div> 
@@ -169,29 +232,21 @@
     
     <script th:inline="none">
         $(document).ready(function() {
-            // Solo inicializar si la tabla existe en el DOM
             if ($('#tablaReporteFechas').length) {
-                var table = $('#tablaReporteFechas').DataTable({
-                    "dom": 'lfrtip',
+                $('#tablaReporteFechas').DataTable({
+                    "dom": '<"row"<"col-sm-6"l><"col-sm-6 text-right"f>>' +
+                           '<"row"<"col-sm-12"tr>>' +
+                           '<"row"<"col-sm-6"i><"col-sm-6"p>>',
                     "language": {
                         "lengthMenu": "Mostrar _MENU_ registros",
                         "search": "Buscar:",
-                        "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        "info": "Página _PAGE_ de _PAGES_",
                         "paginate": { "next": "Siguiente", "previous": "Anterior" },
-                        "emptyTable": "No se encontraron ventas para el periodo seleccionado"
+                        "emptyTable": "No se encontraron ventas"
                     },
                     "order": [[ 0, "desc" ]],
                     "pageLength": 10
                 });
-
-                var controlesHtml = '<div class="row align-items-center w-100 m-0">' +
-                                    '<div id="dt-mostrar" class="col-md-6 d-flex align-items-center"></div>' +
-                                    '<div id="dt-buscar" class="col-md-6 d-flex justify-content-end align-items-center"></div>' +
-                                    '</div>';
-                
-                $('#contenedor-controles-dt').html(controlesHtml);
-                $('.dataTables_length').appendTo('#dt-mostrar');
-                $('.dataTables_filter').appendTo('#dt-buscar');
             }
         });
     </script>

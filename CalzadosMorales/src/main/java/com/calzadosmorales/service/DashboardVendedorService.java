@@ -37,7 +37,8 @@ public class DashboardVendedorService {
         datos.put("productoStar", producto != null ? producto : "Sin ventas");
         
         String mejorCliente = ventaRepo.getMejorCliente(idUsuario);
-        datos.put("mejorCliente", mejorCliente != null ? mejorCliente : "Sin ventas");
+        datos.put("mejorCliente", (mejorCliente != null && !mejorCliente.isEmpty()) 
+         ? mejorCliente : "Sin registros");
 
 
         // GrAfico de Barras

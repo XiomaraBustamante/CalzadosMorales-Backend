@@ -18,108 +18,104 @@
             --border-color: #ebedf2;
         }
 
-        #contenedor-controles-dt {
-            background-color: #ffffff;
-            padding: 20px 25px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .dataTables_length label, .dataTables_filter label {
+        /* 1. AJUSTE DE BUSCADOR (DERECHA) Y MOSTRAR (IZQUIERDA) */
+        .dataTables_wrapper .row:first-child {
             display: flex;
             align-items: center;
-            gap: 15px;
-            font-weight: 600;
-            color: #4b49ac;
-            margin-bottom: 0;
+            justify-content: space-between;
+            margin-bottom: 20px !important;
+            padding: 0 5px;
         }
 
+        .dataTables_length { float: left !important; }
+        .dataTables_filter { text-align: right !important; float: right !important; }
+
+        .dataTables_length label, .dataTables_filter label {
+            font-weight: normal;
+            color: #343a40;
+            font-size: 0.875rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Inputs rectangulares simples */
         .dataTables_filter input {
-            border: 1px solid #d1d3e2 !important;
-            border-radius: 25px !important;
-            padding: 8px 18px !important;
-            width: 250px !important;
+            border: 1px solid #ebedf2 !important;
+            border-radius: 4px !important;
+            padding: 6px 12px !important;
+            margin-left: 10px !important;
+            width: 210px !important;
         }
 
-        #tablaRecuperar {
-            border-collapse: separate !important;
-            border-spacing: 0 12px !important;
+        .dataTables_length select {
+            border: 1px solid #ebedf2 !important;
+            border-radius: 4px !important;
+            padding: 4px 8px !important;
+            margin: 0 10px !important;
         }
 
-        #tablaRecuperar thead th {
-            border: none;
-            color: #3e4b5b;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            padding: 15px;
-            background-color: #f8f9fa; 
+        /* 2. AJUSTE DE PAGINACIÓN MORADA */
+        .dataTables_info {
+            font-size: 0.875rem;
+            color: #343a40;
+            padding-top: 15px !important;
         }
 
-        #tablaRecuperar tbody tr {
-            background-color: #ffffff;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        .dataTables_wrapper .dataTables_paginate {
+            margin-top: 20px !important;
+            display: flex;
+            justify-content: flex-end;
         }
 
-        #tablaRecuperar tbody tr:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }
+        .pagination { display: flex; gap: 2px; list-style: none; }
 
-        #tablaRecuperar td {
+        .page-item .page-link {
+            padding: 8px 16px !important;
+            color: #b66dff !important;
+            background-color: #f3f0ff !important;
             border: none !important;
-            padding: 15px 15px !important;
-            vertical-align: middle;
+            font-weight: 500;
+            border-radius: 4px !important;
         }
 
-        #tablaRecuperar tbody tr td:first-child { border-radius: 10px 0 0 10px; }
-        #tablaRecuperar tbody tr td:last-child { border-radius: 0 10px 10px 0; }
-
-        .dias-badge {
-            font-weight: 800;
-            font-size: 1.1rem;
+        /* Resaltado del número 1 */
+        .page-item.active .page-link {
+            background-color: #b66dff !important;
+            color: white !important;
+            font-weight: bold;
         }
+
+        .page-item.disabled .page-link {
+            background-color: #f8f9fa !important;
+            opacity: 0.6;
+        }
+
+        /* ESTILOS DE TABLA (MANTENIDOS) */
+        #tablaRecuperar { border-collapse: separate !important; border-spacing: 0 12px !important; }
+        #tablaRecuperar thead th { border: none; color: #3e4b5b; font-weight: 700; text-transform: uppercase; font-size: 0.8rem; padding: 15px; background-color: #f8f9fa; }
+        #tablaRecuperar tbody tr { background-color: #ffffff; transition: all 0.2s ease-in-out; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        #tablaRecuperar td { border: none !important; padding: 15px 15px !important; vertical-align: middle; }
+        .dias-badge { font-weight: 800; font-size: 1.1rem; }
         .alerta-media { color: var(--warning-orange); }
         .alerta-critica { color: var(--danger-red); }
-
-        .btn-whatsapp {
-            background-color: #25d366;
-            color: white;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-weight: bold;
-            transition: 0.3s;
-            border: none;
-        }
-        .btn-whatsapp:hover {
-            background-color: #128c7e;
-            color: white;
-            box-shadow: 0 4px 8px rgba(37, 211, 102, 0.3);
-        }
-
+        .btn-whatsapp { background-color: #25d366; color: white; border-radius: 8px; padding: 8px 12px; font-weight: bold; border: none; }
         .linea-visible { border-top: 1px solid #ebedf2; margin: 1.5rem 0; }
     </style>
 </head>
 <body>
     <div class="container-scroller">
         <nav th:replace="~{fragmentos/navbar :: navbar}"></nav>
-        
         <div class="container-fluid page-body-wrapper">
             <nav th:replace="~{fragmentos/sidebar :: sidebar}"></nav>
-
             <div class="main-panel">
                 <div class="content-wrapper">
-                    
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h3 class="page-title">
                             <span class="page-title-icon bg-gradient-warning text-white me-2">
                                 <i class="mdi mdi-account-convert"></i>
                             </span> Recuperación de Clientes
                         </h3>
-                        <p class="text-muted mb-0">Clientes sin compras en más de 30 días.</p>
                     </div>
 
                     <div class="row">
@@ -128,8 +124,6 @@
                                 <div class="card-body">
                                     <h4 class="card-title text-primary mb-0">Lista de Seguimiento</h4>
                                     <hr class="linea-visible">
-
-                                    <div id="contenedor-controles-dt"></div>
 
                                     <div class="table-responsive">
                                         <table class="table" id="tablaRecuperar" width="100%">
@@ -145,25 +139,23 @@
                                             <tbody>
                                                 <tr th:each="v : ${listaClientes}">
                                                     <td class="align-middle">
-                                                        <div class="font-weight-bold text-dark" th:text="${v[0]}">Nombre</div>
+                                                        <div class="font-weight-bold text-dark" th:text="${v[0]}"></div>
                                                         <small class="text-muted">Cliente Morales</small>
                                                     </td>
                                                     <td class="align-middle">
                                                         <i class="mdi mdi-phone-classic text-primary me-1"></i>
-                                                        <span th:text="${v[1]}">900000000</span>
+                                                        <span th:text="${v[1]}"></span>
                                                     </td>
                                                     <td class="align-middle text-center">
-                                                        <span class="badge badge-outline-secondary" th:text="${v[2]}">01/01/2026</span>
+                                                        <span class="badge badge-outline-secondary" th:text="${v[2]}"></span>
                                                     </td>
                                                     <td class="align-middle text-center">
                                                         <div th:class="${v[3] > 60 ? 'dias-badge alerta-critica' : 'dias-badge alerta-media'}">
-                                                            <span th:text="${v[3]}">0</span> 
-                                                            <small>días</small>
+                                                            <span th:text="${v[3]}"></span> <small>días</small>
                                                         </div>
                                                     </td>
                                                     <td class="align-middle text-center">
-                                                        <a th:href="'https://wa.me/51' + ${v[1]}" target="_blank" 
-                                                           class="btn btn-whatsapp btn-sm">
+                                                        <a th:href="'https://wa.me/51' + ${v[1]}" target="_blank" class="btn btn-whatsapp btn-sm">
                                                             <i class="mdi mdi-whatsapp me-1"></i> WhatsApp
                                                         </a>
                                                     </td>
@@ -176,12 +168,6 @@
                         </div>
                     </div>
                 </div> 
-                
-                <footer class="footer">
-                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2026 Calzados Morales</span>
-                    </div>
-                </footer>
             </div> 
         </div> 
     </div> 
@@ -192,28 +178,18 @@
     
     <script th:inline="none">
         $(document).ready(function() {
-            var table = $('#tablaRecuperar').DataTable({
-                "dom": 'lfrtip',
+            $('#tablaRecuperar').DataTable({
                 "language": {
                     "lengthMenu": "Mostrar _MENU_ registros",
                     "search": "Buscar:",
-                    "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                    "paginate": { "next": "Siguiente", "previous": "Anterior" },
-                    "emptyTable": "No se encontraron clientes para recuperar"
+                    "info": "Página _PAGE_ de _PAGES_",
+                    "paginate": { "next": "Siguiente", "previous": "Anterior" }
                 },
-                "order": [[ 3, "desc" ]], // Ordenar por la columna 3 (Días Ausente)
-                "pageLength": 10
+                "order": [[ 3, "desc" ]],
+                "pageLength": 10,
+                // Layout exacto: l(mostrar) izquierda, f(buscar) derecha
+                "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'
             });
-
-            // Reubicación estética de los controles de la tabla
-            var controlesHtml = '<div class="row align-items-center w-100 m-0">' +
-                                '<div id="dt-mostrar" class="col-md-6 d-flex align-items-center"></div>' +
-                                '<div id="dt-buscar" class="col-md-6 d-flex justify-content-end align-items-center"></div>' +
-                                '</div>';
-            
-            $('#contenedor-controles-dt').html(controlesHtml);
-            $('.dataTables_length').appendTo('#dt-mostrar');
-            $('.dataTables_filter').appendTo('#dt-buscar');
         });
     </script>
 </body>

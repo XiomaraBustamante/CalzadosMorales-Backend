@@ -9,31 +9,40 @@
     <link rel="shortcut icon" th:href="@{/assets/images/favicon.png}" />
     
     <style>
-        /* Forzar que inputs y botones midan lo mismo */
-        .custom-height {
-            height: 45px !important;
-        }
-        
-        /* Línea separadora solicitada: gris visible y con margen */
-        .linea-visible {
-            border-top: 1.5px solid #d1d3e2 !important; 
-            opacity: 1;
-            margin-top: 10px;
-            margin-bottom: 20px;
-        }
+        .custom-height { height: 46px !important; }
+        .border-custom { border: 1px solid #b66dff !important; }
+        .linea-visible { border-top: 1.5px solid #d1d3e2 !important; opacity: 1; margin: 15px 0 25px 0; }
 
-        /* Ajuste para que el texto de los botones esté centrado */
-        .btn-icon-text {
-            display: inline-flex;
-            align-items: center;
+        /* Estilo del icono con degradado de tu imagen */
+        .input-group-text-custom {
+            background: linear-gradient(to right, #da8cff, #9a55ff) !important;
+            color: white !important;
+            border: none !important;
+            width: 45px;
+            display: flex;
             justify-content: center;
         }
+
+        /* Alineación y diseño del cuadrito de Stock (image_006bc0.png) */
+        .stock-box {
+            display: inline-block;
+            min-width: 40px;
+            padding: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #3e4b5b;
+            text-align: center;
+            background-color: white;
+        }
+
+        /* Centrado vertical de celdas para que todo se vea parejo */
+        .table td { vertical-align: middle !important; }
     </style>
 </head>
 <body>
     <div class="container-scroller">
         <nav th:replace="~{fragmentos/navbar :: navbar}"></nav>
-        
         <div class="container-fluid page-body-wrapper">
             <nav th:replace="~{fragmentos/sidebar :: sidebar}"></nav>
 
@@ -50,45 +59,54 @@
 
                     <div class="row">
                         <div class="col-12 grid-margin stretch-card">
-                            <div class="card">
+                            <div class="card shadow-sm">
                                 <div class="card-body">
-                                    <h4 class="card-title">Filtros De Búsqueda</h4>
-                                    <hr class="linea-visible"> <form th:action="@{/productos/consulta-stock}" method="get">
+                                    <h4 class="card-title text-primary">Filtros De Búsqueda</h4>
+                                    <hr class="linea-visible">
+                                    <form th:action="@{/productos/consulta-stock}" method="get" class="needs-validation" novalidate>
                                         <div class="row align-items-end">
                                             <div class="col-md-4">
                                                 <div class="form-group mb-0">
                                                     <label class="text-muted font-weight-bold">Categoría:</label>
-                                                    <select name="idCat" class="form-control custom-height">
-                                                        <option value="0">-- Todas las Categorías --</option>
-                                                        <option th:each="cat : ${listaCategorias}" 
-                                                                th:value="${cat.id_categoria}" 
-                                                                th:text="${cat.nombre}"
-                                                                th:selected="${cat.id_categoria == idCategoriaSeleccionada}">
-                                                        </option>
-                                                    </select>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text input-group-text-custom custom-height">
+                                                                <i class="mdi mdi-tag-outline"></i>
+                                                            </span>
+                                                        </div>
+                                                        <select name="idCat" class="form-control custom-height border-custom">
+                                                            <option value="0">-- Todas las Categorías --</option>
+                                                            <option th:each="cat : ${listaCategorias}" 
+                                                                    th:value="${cat.id_categoria}" th:text="${cat.nombre}"
+                                                                    th:selected="${cat.id_categoria == idCategoriaSeleccionada}">
+                                                            </option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-4">
                                                 <div class="form-group mb-0">
-                                                    <label class="text-muted font-weight-bold">Talla:</label>
-                                                    <input type="text" name="talla" class="form-control custom-height" 
-                                                           placeholder="Ej: 39" th:value="${tallaFiltro}">
+                                                    <label class="text-muted font-weight-bold">Talla (30 - 48):</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text input-group-text-custom custom-height">
+                                                                <i class="mdi mdi-ruler"></i>
+                                                            </span>
+                                                        </div>
+                                                        <input type="number" name="talla" class="form-control custom-height border-custom" 
+                                                               placeholder="Ej: 38" th:value="${tallaFiltro}" min="30" max="48">
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-4">
-                                                <div class="d-flex">
-                                                    <button type="submit" class="btn btn-gradient-primary btn-icon-text me-2 custom-height flex-fill">
-                                                        <i class="mdi mdi-magnify btn-icon-prepend"></i> Buscar
-                                                    </button>
-                                                    
-                                                    <a th:href="@{/productos/consulta-stock}" 
-                                                       class="btn btn-secondary btn-icon-text custom-height flex-fill" 
-                                                       style="background-color: #e4e6eb; color: #3e4b5b; border: none;">
-                                                        <i class="mdi mdi-refresh btn-icon-prepend"></i> Limpiar
-                                                    </a>
-                                                </div>
+                                            <div class="col-md-4 d-flex">
+                                                <button type="submit" class="btn btn-gradient-primary btn-icon-text me-2 custom-height flex-fill">
+                                                    <i class="mdi mdi-magnify btn-icon-prepend"></i> Buscar
+                                                </button>
+                                                <a th:href="@{/productos/consulta-stock}" class="btn btn-light custom-height flex-fill border">
+                                                    <i class="mdi mdi-refresh"></i> Limpiar
+                                                </a>
                                             </div>
                                         </div>
                                     </form>
@@ -99,11 +117,12 @@
 
                     <div class="row">
                         <div class="col-12 grid-margin stretch-card">
-                            <div class="card">
+                            <div class="card shadow-sm">
                                 <div class="card-body">
-                                    <h4 class="card-title">Existencias En Almacén</h4>
-                                    <hr class="linea-visible"> <div class="table-responsive">
-                                        <table class="table table-hover table-bordered">
+                                    <h4 class="card-title text-primary">Existencias En Almacén</h4>
+                                    <hr class="linea-visible"> 
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
                                             <thead class="bg-light">
                                                 <tr>
                                                     <th>ID</th>
@@ -112,33 +131,34 @@
                                                     <th>Talla</th>
                                                     <th>Color</th>
                                                     <th>Precio</th>
-                                                    <th>Stock</th>
+                                                    <th class="text-center">Stock</th>
                                                     <th>Estado</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr th:each="p : ${listaResultados}">
                                                     <td th:text="${p.id_producto}"></td>
-                                                    <td class="font-weight-bold" th:text="${p.nombre}"></td>
+                                                    <td class="font-weight-bold text-dark" th:text="${p.nombre}"></td>
                                                     <td th:text="${p.categoria.nombre}"></td>
                                                     <td th:text="${p.talla.nombre}"></td>
                                                     <td th:text="${p.color.nombre}"></td>
-                                                    <td>
-                                                        <span th:text="'S/ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 2, 'COMMA')}"></span>
-                                                    </td>
+                                                    <td class="font-weight-bold" th:text="'S/ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 2, 'COMMA')}"></td>
+                                                    
                                                     <td class="text-center">
-                                                        <mark class="bg-light font-weight-bold" th:text="${p.stock}"></mark>
+                                                        <div class="stock-box" th:text="${p.stock}"></div>
                                                     </td>
+
                                                     <td>
                                                         <span th:if="${p.stock <= 0}" class="badge badge-danger">AGOTADO</span>
                                                         <span th:if="${p.stock > 0 and p.stock <= 5}" class="badge badge-warning text-dark">BAJO STOCK</span>
                                                         <span th:if="${p.stock > 5}" class="badge badge-success">DISPONIBLE</span>
                                                     </td>
                                                 </tr>
-                                                
+
                                                 <tr th:if="${#lists.isEmpty(listaResultados)}">
-                                                    <td colspan="8" class="text-center text-muted py-4">
-                                                        <i class="mdi mdi-alert-circle-outline"></i> No se encontraron productos con los filtros seleccionados.
+                                                    <td colspan="8" class="text-center text-muted py-5">
+                                                        <i class="mdi mdi-alert-circle-outline mdi-24px"></i><br>
+                                                        No se encontraron productos con los filtros seleccionados.
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -148,14 +168,17 @@
                             </div>
                         </div>
                     </div>
-                </div> <footer class="footer">
+                </div> 
+                <footer class="footer">
                     <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2026 Calzados Morales</span>
+                        <span class="text-muted">Copyright © 2026 Calzados Morales</span>
                     </div>
                 </footer>
-            </div> </div> </div> <script th:src="@{/assets/vendors/js/vendor.bundle.base.js}"></script>
-    <script th:src="@{/assets/js/off-canvas.js}"></script>
-    <script th:src="@{/assets/js/hoverable-collapse.js}"></script>
+            </div> 
+        </div> 
+    </div> 
+
+    <script th:src="@{/assets/vendors/js/vendor.bundle.base.js}"></script>
     <script th:src="@{/assets/js/misc.js}"></script>
 </body>
 </html>
