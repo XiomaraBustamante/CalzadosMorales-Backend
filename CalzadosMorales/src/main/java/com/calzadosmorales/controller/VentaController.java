@@ -193,12 +193,16 @@ public class VentaController {
     }
     
     // 5. GENERAR PDF
+
     @GetMapping("/verPDF/{id}")
-    public void verPDF(@PathVariable("id") Integer idVenta, HttpServletResponse response) throws IOException {
-        Venta venta = ventaService.buscarPorId(idVenta); 
-        if (venta != null) {
-            // Se asume que pdfService maneja el diseño según Boleta o Factura internamente
-            pdfService.exportarVentaPDF(response, venta);
+    public void verPDF(@PathVariable("id") Integer idVenta, HttpServletResponse response) {
+        try {
+            Venta venta = ventaService.buscarPorId(idVenta); 
+            if (venta != null) {
+                pdfService.exportarVentaPDF(response, venta);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al visualizar el PDF: " + e.getMessage());
         }
     }
     
