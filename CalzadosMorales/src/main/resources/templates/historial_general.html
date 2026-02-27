@@ -124,6 +124,13 @@
         
         /* Asegurar que la tabla no tenga bordes raros arriba */
         .table { border-top: none !important; }
+		
+	
+		.btn-gradient-success {
+		    background: linear-gradient(to right, #11998e, #38ef7d) !important;
+		    border: none;
+		    color: white;
+		}
     </style>
 </head>
 <body>
@@ -136,16 +143,16 @@
             <div class="main-panel">
                 <div class="content-wrapper">
                     
-                    <div class="page-header">
-                        <h3 class="page-title">
-                            <span class="page-title-icon bg-gradient-primary text-white me-2">
-                                <i class="mdi mdi-history"></i>
-                            </span> Historial General de Ventas
-                        </h3>
-                        <a th:href="@{/ventas/exportar-general}" class="btn btn-gradient-info btn-icon-text">
-                            <i class="mdi mdi-file-excel btn-icon-prepend"></i> Reporte Excel
-                        </a>
-                    </div>
+					<div class="page-header">
+					    <h3 class="page-title">
+					        <span class="page-title-icon bg-gradient-primary text-white me-2">
+					            <i class="mdi mdi-history"></i>
+					        </span> Historial General de Ventas
+					    </h3>
+					    <a th:href="@{/ventas/exportar-excel}" class="btn btn-gradient-success btn-icon-text">
+					        <i class="mdi mdi-file-excel btn-icon-prepend"></i> Exportar Excel
+					    </a>
+					</div>
 
                     <div class="row">
                         <div class="col-12 grid-margin stretch-card">
@@ -180,15 +187,17 @@
                                                         S/ <span th:text="${#numbers.formatDecimal(v[5], 1, 'POINT', 2, 'COMMA')}"></span>
                                                     </td>
                                                     <td class="text-center">
-                                                        <span th:if="${v[6] == 'REGISTRADA'}" class="badge badge-status">DISPONIBLE</span>
+                                                        <span th:if="${v[6] == 'REGISTRADA'}" class="badge badge-status">REGISTRADA</span>
                                                         <span th:if="${v[6] != 'REGISTRADA'}" class="badge badge-danger-custom">ANULADA</span>
                                                     </td>
-                                                    <td class="text-center">
-                                                        <a th:href="@{/comprobante/pdf(idVenta=${v[0]})}" target="_blank" 
-                                                           class="btn btn-gradient-dark btn-rounded btn-icon">
-                                                            <i class="mdi mdi-printer"></i>
-                                                        </a>
-                                                    </td>
+													<td class="text-center">
+													    <a th:href="@{/ventas/verPDF/{id}(id=${v[0]})}" 
+													       target="_blank" 
+													       class="btn btn-gradient-dark btn-rounded btn-icon d-inline-flex align-items-center justify-content-center"
+													       title="Imprimir Comprobante">
+													        <i class="mdi mdi-printer"></i>
+													    </a>
+													</td>
                                                 </tr>
                                             </tbody>
                                         </table>

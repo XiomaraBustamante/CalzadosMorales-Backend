@@ -22,6 +22,7 @@ import com.calzadosmorales.entity.Usuario;
 import com.calzadosmorales.entity.Venta;
 import com.calzadosmorales.repository.UsuarioRepository; // IMPORTANTE
 import com.calzadosmorales.service.ClienteService;
+import com.calzadosmorales.service.ExcelService;
 import com.calzadosmorales.service.PdfService;
 import com.calzadosmorales.service.ProductoService;
 import com.calzadosmorales.service.VentaService;
@@ -46,9 +47,12 @@ public class VentaController {
     private PdfService pdfService;
 
     @Autowired
-    private UsuarioRepository usuarioRepo; // Inyectamos para buscar al usuario real
+    private UsuarioRepository usuarioRepo; 
+    
+    @Autowired
+    private ExcelService excelService; 
 
-    // 1. PANTALLA PRINCIPAL
+    // PANTALLA PRINCIPAL
     @GetMapping("/nueva")
     public String nuevaVenta(Model model, HttpSession session) {
         model.addAttribute("productos", productoService.listarProductos());
@@ -69,7 +73,7 @@ public class VentaController {
         return "nueva_venta"; 
     }
 
-    // 2. AGREGAR AL CARRITO
+    // AGREGAR AL CARRITO
     @PostMapping("/agregar")
     public String agregarProducto(
             @RequestParam("id_producto") Integer idProducto,
@@ -115,7 +119,7 @@ public class VentaController {
         return "redirect:/ventas/nueva";
     }
 
-    // 3. QUITAR / LIMPIAR
+    //LIMPIAR
     @GetMapping("/quitar/{index}")
     public String quitarDelCarrito(@PathVariable("index") int index, HttpSession session) {
         List<DetalleVenta> carrito = (List<DetalleVenta>) session.getAttribute("carrito");
@@ -129,13 +133,13 @@ public class VentaController {
         return "redirect:/ventas/nueva";
     }
 
-    // 4. GUARDAR VENTA (CON USUARIO DINÁMICO Y NÚMERO GENERADO)
+    //GUARDAR VENTA 
     @PostMapping("/guardar")
     public String guardarVenta(
             @RequestParam("id_cliente") Integer idCliente, 
             HttpSession session, 
             RedirectAttributes flash,
-            Authentication auth) { // <-- Authentication captura al usuario logueado
+            Authentication auth) { 
 
         List<DetalleVenta> carrito = (List<DetalleVenta>) session.getAttribute("carrito");
         if (carrito == null || carrito.isEmpty()) {
@@ -147,7 +151,7 @@ public class VentaController {
             Venta venta = new Venta();
             venta.setFecha(LocalDateTime.now());
             
-            // 1. CLIENTE Y TIPO DE COMPROBANTE
+            //CLIENTE Y TIPO DE COMPROBANTE
             Cliente clienteReal = clienteService.buscarPorId(idCliente);
             venta.setCliente(clienteReal);
 
@@ -159,12 +163,12 @@ public class VentaController {
                 venta.setSerie("B001");
             }
 
-            // 2. CAPTURAR USUARIO REAL DESDE LA SESIÓN
+    
             String username = auth.getName();
             Usuario usuarioLogueado = usuarioRepo.findByUsuario(username);
             venta.setUsuario(usuarioLogueado); 
             
-            // 3. CÁLCULO DE TOTALES
+   
             BigDecimal total = carrito.stream()
                     .map(DetalleVenta::getSubtotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -174,16 +178,16 @@ public class VentaController {
                 venta.agregarDetalle(d);
             }
             
-            // 4. PRIMER GUARDADO (Para obtener el ID autonumérico)
+         
             ventaService.registrarVenta(venta);
 
-            // 5. ACTUALIZAR NÚMERO DE COMPROBANTE (Ej: 000015)
+   
             venta.setNumero(String.format("%06d", venta.getId_venta()));
             ventaService.registrarVenta(venta); 
             
             session.removeAttribute("carrito");
             
-            // Redirigir directamente al PDF
+       
             return "redirect:/ventas/verPDF/" + venta.getId_venta();
             
         } catch (Exception e) {
@@ -192,7 +196,7 @@ public class VentaController {
         }
     }
     
-    // 5. GENERAR PDF
+    // GENERAR PDF
 
     @GetMapping("/verPDF/{id}")
     public void verPDF(@PathVariable("id") Integer idVenta, HttpServletResponse response) {
@@ -206,9 +210,9 @@ public class VentaController {
         }
     }
     
- // ==========================================
+
     // NUEVAS RUTAS: CONSULTAS Y REPORTES
-    // ==========================================
+ 
 
  // --- PARA EL VENDEDOR ---
 
@@ -255,7 +259,7 @@ public class VentaController {
              @RequestParam(name = "fin", required = false) String fin,
              Model model) {
         
-        // 1. Verificamos si se han enviado fechas (el usuario presionó el botón)
+        // Verificamos si se han enviado fechas (el usuario presionó el botón)
         if (inicio != null && !inicio.isEmpty() && fin != null && !fin.isEmpty()) {
             model.addAttribute("listaVentas", ventaService.obtenerReporteFechas(inicio, fin));
             model.addAttribute("totalSumatoria", ventaService.obtenerSumatoriaRango(inicio, fin));
@@ -281,5 +285,19 @@ public class VentaController {
     public String verAnalisisHorario(Model model) {
         model.addAttribute("listaAnalisis", ventaService.obtenerAnalisisHorario());
         return "analisis_horario"; 
+    }
+    
+    
+    
+    @GetMapping("/exportar-excel")
+    @PreAuthorize("hasRole('ROLE_1')")
+    public void exportarExcel(HttpServletResponse response) throws IOException {
+        response.setContentType("application/octet-stream");
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=Reporte_Ventas_CalzadosMorales.xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        List<Object[]> listaHistorial = ventaService.obtenerHistorialGeneralAdmin();
+        excelService.exportarVentasExcel(response, listaHistorial);
     }
 }

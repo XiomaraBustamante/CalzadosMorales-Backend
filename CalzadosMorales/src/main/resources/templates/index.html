@@ -284,16 +284,32 @@
                     });
                 }
 
-                const datosPie = /*[[${categoriasTop}]]*/ [];
-                if (datosPie && datosPie.length > 0) {
-                    new Chart(document.getElementById('graficoCategoriasVendedor'), {
-                        type: 'doughnut',
-                        data: {
-                            labels: datosPie.map(i => i[0]),
-                            datasets: [{ data: datosPie.map(i => i[1]), backgroundColor: ['#fe7096', '#9a55ff', '#3fe2d9', '#ffab2d'] }]
-                        }
-                    });
-                }
+				const datosPie = /*[[${categoriasTop}]]*/ [];
+				if (datosPie && datosPie.length > 0) {
+				    // Generamos colores basados en el nombre del género
+				    const colores = datosPie.map(i => {
+				        if (i[0] === 'Hombres') return '#5e72e4'; // Azul
+				        if (i[0] === 'Mujeres') return '#fe7096'; // Rosa/Fucsia
+				        return '#8898aa'; // Gris para "Empresas / Otros"
+				    });
+
+				    new Chart(document.getElementById('graficoCategoriasVendedor'), {
+				        type: 'doughnut',
+				        data: {
+				            labels: datosPie.map(i => i[0]),
+				            datasets: [{ 
+				                data: datosPie.map(i => i[1]), 
+				                backgroundColor: colores,
+				                borderWidth: 2
+				            }]
+				        },
+				        options: {
+				            plugins: {
+				                legend: { position: 'bottom' }
+				            }
+				        }
+				    });
+				}
             }
         });
         /*]]>*/

@@ -3,14 +3,9 @@ package com.calzadosmorales.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
-import com.calzadosmorales.repository.DetalleVentaRepository;
 import com.calzadosmorales.repository.VentaRepository;
-
 
 @Service
 public class DashboardVendedorService {
@@ -18,12 +13,10 @@ public class DashboardVendedorService {
     @Autowired
     private VentaRepository ventaRepo;
 
- 
     public Map<String, Object> obtenerDatosDashboardVendedor(int idUsuario) {
         Map<String, Object> datos = new HashMap<>();
 
-        // TARJETAS
-        
+        // 1. TARJETAS (KPIs)
         Double ventasMes = ventaRepo.getVentasMes(idUsuario);
         datos.put("ventasMes", ventasMes != null ? ventasMes : 0.0);
         
@@ -38,18 +31,17 @@ public class DashboardVendedorService {
         
         String mejorCliente = ventaRepo.getMejorCliente(idUsuario);
         datos.put("mejorCliente", (mejorCliente != null && !mejorCliente.isEmpty()) 
-         ? mejorCliente : "Sin registros");
+                                   ? mejorCliente : "Sin registros");
 
-
-        // GrAfico de Barras
+        // 2. GRÁFICO DE BARRAS (Rendimiento Semanal)
         datos.put("datosBarras", ventaRepo.getRendimientoComparativo(idUsuario));
         
-        // GrAfico Circular
-        datos.put("categoriasTop", ventaRepo.getVentasPorGenero(idUsuario));
+        // 3. GRÁFICO CIRCULAR (Ventas por Género)
+        // Usamos la misma clave que ya tienes en el HTML para no romper nada
+        List<Object[]> datosGenero = ventaRepo.getVentasPorGenero(idUsuario);
+        datos.put("categoriasTop", datosGenero);
  
-        // TABLA DE ACTIVIDAD 
-
-        // Lista de los últimos 7 clientes atendidos
+        // 4. TABLA DE ACTIVIDAD (Últimos 7 clientes)
         datos.put("ultimasVentasVendedor", ventaRepo.getUltimosSieteClientes(idUsuario));
 
         return datos;

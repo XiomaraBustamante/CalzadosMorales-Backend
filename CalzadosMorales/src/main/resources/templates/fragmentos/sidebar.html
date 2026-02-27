@@ -4,12 +4,12 @@
     <ul class="nav">
         <li class="nav-item nav-profile">
             <a href="#" class="nav-link">
-                <div class="nav-profile-image">
-                    <img src="/assets/images/faces/face1.jpg" alt="profile" />
+                <div class="nav-profile-image d-flex align-items-center justify-content-center">
+                    <i class="mdi mdi-account-circle text-primary" style="font-size: 2.5rem;"></i>
                     <span class="login-status online"></span>
                 </div>
-                <div class="nav-profile-text d-flex flex-column">
-                    <span class="font-weight-bold mb-2" th:text="${userNombreCompleto}">Nombre Usuario</span>
+                <div class="nav-profile-text d-flex flex-column ms-3">
+                    <span class="font-weight-bold mb-1" th:text="${userNombreCompleto}">Nombre Usuario</span>
                     <span class="text-secondary text-small" th:text="${userRol}">Rol</span>
                 </div>
                 <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
@@ -104,7 +104,7 @@
             <div class="collapse" id="ui-seguridad">
                 <ul class="nav flex-column sub-menu">
                     <li class="nav-item"> <a class="nav-link" th:href="@{/usuarios}">Usuarios</a></li>
-                    <li class="nav-item"> <a class="nav-link" th:href="@{/roles}">Roles y Accesos</a></li>
+                   
                 </ul>
             </div>
         </li>
