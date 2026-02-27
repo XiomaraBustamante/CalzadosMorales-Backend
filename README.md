@@ -1,4 +1,4 @@
-# 👠 Calzados Morales - ERP System v1.0
+# 👠 Calzados Morales - v1.0
 > **Solución integral para la gestión retail de calzado, optimizando el ciclo de inventario y ventas.**
 
 [![Java Version](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
@@ -72,11 +72,3 @@ spring.datasource.url=jdbc:mysql://localhost:3306/BDCALZADOS
 spring.datasource.username=root
 spring.datasource.password=tus_credenciales
 
-👥 Equipo de Desarrollo
-Xiomara Bustamante - Líder de Proyecto & Backend Developer
-
-Andrés [Apellido] - Fullstack Developer
-
-Jean Pierre [Apellido] - Database Administrator
-
-© 2026 Calzados Morales | Caminando con elegancia y tecnología.
