@@ -133,10 +133,11 @@ public class VentaController {
         return "redirect:/ventas/nueva";
     }
 
-    //GUARDAR VENTA 
+
     @PostMapping("/guardar")
     public String guardarVenta(
             @RequestParam("id_cliente") Integer idCliente, 
+            @RequestParam(name = "generarPdf", defaultValue = "true") boolean generarPdf, // <-- NUEVO PARÁMETRO
             HttpSession session, 
             RedirectAttributes flash,
             Authentication auth) { 
@@ -151,7 +152,6 @@ public class VentaController {
             Venta venta = new Venta();
             venta.setFecha(LocalDateTime.now());
             
-            //CLIENTE Y TIPO DE COMPROBANTE
             Cliente clienteReal = clienteService.buscarPorId(idCliente);
             venta.setCliente(clienteReal);
 
@@ -163,12 +163,10 @@ public class VentaController {
                 venta.setSerie("B001");
             }
 
-    
             String username = auth.getName();
             Usuario usuarioLogueado = usuarioRepo.findByUsuario(username);
             venta.setUsuario(usuarioLogueado); 
             
-   
             BigDecimal total = carrito.stream()
                     .map(DetalleVenta::getSubtotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -178,17 +176,20 @@ public class VentaController {
                 venta.agregarDetalle(d);
             }
             
-         
             ventaService.registrarVenta(venta);
-
-   
             venta.setNumero(String.format("%06d", venta.getId_venta()));
             ventaService.registrarVenta(venta); 
             
             session.removeAttribute("carrito");
             
-       
-            return "redirect:/ventas/verPDF/" + venta.getId_venta();
+            // --- LÓGICA DE DECISIÓN ---
+            if (generarPdf) {
+                return "redirect:/ventas/verPDF/" + venta.getId_venta();
+            } else {
+                flash.addFlashAttribute("success", "Venta registrada exitosamente (Sin comprobante).");
+                // Si es vendedor va a sus ventas, si no a nueva venta
+                return "redirect:/ventas/nueva"; 
+            }
             
         } catch (Exception e) {
             flash.addFlashAttribute("error", "Error al procesar la venta: " + e.getMessage());

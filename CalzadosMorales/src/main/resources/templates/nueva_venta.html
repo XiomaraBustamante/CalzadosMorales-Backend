@@ -87,6 +87,8 @@
                                     </div>
                                     <hr>
                                     <form th:action="@{/ventas/guardar}" method="post" id="formVenta" target="_blank">
+                                        <input type="hidden" name="generarPdf" id="inputGenerarPdf" value="true">
+                                        
                                         <div class="form-group mb-3">
                                             <label class="fw-bold">Cliente:</label>
                                             <select class="form-select select2" name="id_cliente" id="cboCliente" required>
@@ -97,7 +99,7 @@
                                         </div>
                                         <div class="d-grid">
                                             <button type="button" onclick="confirmarVenta()" class="btn btn-success btn-lg" th:disabled="${carrito == null or carrito.empty}">
-                                                <i class="mdi mdi-printer"></i> GENERAR COMPROBANTE
+                                                <i class="mdi mdi-content-save"></i> PROCESAR VENTA
                                             </button>
                                         </div>
                                     </form>
@@ -136,20 +138,37 @@
                 Swal.fire('Atención', 'Seleccione un cliente primero', 'warning');
                 return;
             }
+
             Swal.fire({
-                title: '¿Confirmar Venta?',
-                text: "Se generará el PDF en otra pestaña.",
+                title: '¿Cómo desea registrar la venta?',
+                text: "Puede elegir generar el comprobante PDF o solo guardar el registro.",
                 icon: 'question',
+                showDenyButton: true,
                 showCancelButton: true,
-                confirmButtonText: 'Sí, Facturar',
-                confirmButtonColor: '#198754'
+                confirmButtonText: 'Sí, con PDF',
+                denyButtonText: 'Solo Registrar',
+                confirmButtonColor: '#198754',
+                denyButtonColor: '#3085d6',
+                cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
+                    // Opción con PDF
+                    document.getElementById('inputGenerarPdf').value = "true";
                     document.getElementById('formVenta').submit();
-                    Swal.fire({ icon: 'success', title: 'Venta Registrada', showConfirmButton: false, timer: 2000 });
-                    setTimeout(function() { window.location.href = "/ventas/nueva"; }, 2500);
+                    finalizarFlujoVenta('Venta y PDF generados');
+                } else if (result.isDenied) {
+                    // Opción sin PDF
+                    document.getElementById('inputGenerarPdf').value = "false";
+                    document.getElementById('formVenta').target = "_self"; // Cambiamos target para que no abra pestaña blanca
+                    document.getElementById('formVenta').submit();
+                    finalizarFlujoVenta('Venta registrada (Sin PDF)');
                 }
             });
+        }
+
+        function finalizarFlujoVenta(mensaje) {
+            Swal.fire({ icon: 'success', title: mensaje, showConfirmButton: false, timer: 1500 });
+            setTimeout(function() { window.location.href = "/ventas/nueva"; }, 2000);
         }
     </script>
 </body>

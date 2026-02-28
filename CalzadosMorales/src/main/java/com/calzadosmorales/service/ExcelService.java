@@ -21,14 +21,14 @@ public class ExcelService {
 	    XSSFWorkbook workbook = new XSSFWorkbook();
 	    XSSFSheet sheet = workbook.createSheet("Historial de Ventas");
 
-	    // 1. CREAR CABECERA SIMPLE (La Tabla le dará el diseño luego)
+	    
 	    String[] headers = {"ID", "Fecha / Hora", "Vendedor", "Cliente", "Comprobante", "Total", "Estado"};
 	    Row headerRow = sheet.createRow(0);
 	    for (int i = 0; i < headers.length; i++) {
 	        headerRow.createCell(i).setCellValue(headers[i]);
 	    }
 
-	    // 2. LLENAR DATOS
+	
 	    int rowCount = 1;
 	    for (Object[] v : ventas) {
 	        Row dataRow = sheet.createRow(rowCount++);
@@ -38,7 +38,7 @@ public class ExcelService {
 	        dataRow.createCell(3).setCellValue(v[3] != null ? v[3].toString() : "");
 	        dataRow.createCell(4).setCellValue(v[4] != null ? v[4].toString() : "");
 	        
-	        // El Total lo ponemos como número para que la tabla lo reconozca
+	     
 	        if (v[5] != null) {
 	            try {
 	                dataRow.createCell(5).setCellValue(Double.parseDouble(v[5].toString()));
@@ -49,9 +49,9 @@ public class ExcelService {
 	        dataRow.createCell(6).setCellValue(v[6] != null ? v[6].toString() : "");
 	    }
 
-	    // 3. CONVERTIR A TABLA OFICIAL (Aquí está la magia sin errores)
+	    
 	    int lastRow = sheet.getLastRowNum();
-	    if (lastRow > 0) { // Solo si hay datos
+	    if (lastRow > 0) { 
 	        AreaReference reference = workbook.getCreationHelper().createAreaReference(
 	                new CellReference(0, 0), 
 	                new CellReference(lastRow, headers.length - 1)
@@ -61,18 +61,18 @@ public class ExcelService {
 	        table.setName("VentasMorales");
 	        table.getCTTable().addNewAutoFilter();
 
-	        // Estilo predefinido que NO falla: TableStyleMedium2 (Limpio y profesional)
+	      
 	        table.getCTTable().addNewTableStyleInfo();
 	        table.getCTTable().getTableStyleInfo().setName("TableStyleMedium2");
 	        table.getCTTable().getTableStyleInfo().setShowRowStripes(true);
 	    }
 
-	    // 4. AUTO-AJUSTE DE COLUMNAS
+	 
 	    for (int i = 0; i < headers.length; i++) {
 	        sheet.autoSizeColumn(i);
 	    }
 
-	    // 5. ENVIAR AL NAVEGADOR
+	 
 	    ServletOutputStream outputStream = response.getOutputStream();
 	    workbook.write(outputStream);
 	    workbook.close();
