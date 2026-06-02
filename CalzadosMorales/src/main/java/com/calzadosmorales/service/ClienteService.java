@@ -58,7 +58,7 @@ public class ClienteService {
         return personaJuridicaRepository.findByRuc(ruc);
     }
     
-    // ✅ MÉTODO CORREGIDO - USA EL NOMBRE CORRECTO
+    
     public PersonaJuridica buscarPorRazonSocial(String razonSocial) {
         return personaJuridicaRepository.findByRazonSocial(razonSocial);
     }

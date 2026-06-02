@@ -26,7 +26,7 @@ public class UsuarioService implements UserDetailsService {
     private RolRepository rolRepo;
 
     @Autowired
-    private PasswordEncoder encoder; // CAMBIADO a genérico
+    private PasswordEncoder encoder; 
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -41,13 +41,13 @@ public class UsuarioService implements UserDetailsService {
         
         System.out.println("CLAVE CARGADA DESDE DB: " + u.getClave());
 
-        // Verificamos el Rol
+
         String nombreRol = "ROLE_" + u.getRol().getId_rol();
         System.out.println("ROL ASIGNADO: " + nombreRol);
 
         return User.builder()
             .username(u.getUsuario())
-            .password(u.getClave()) // Ahora será '123456' sin encriptar
+            .password(u.getClave()) 
             .disabled(!u.getEstado())
             .accountExpired(false)
             .credentialsExpired(false)
@@ -57,7 +57,7 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public void guardarUsuario(Usuario usuario) {
-        // Ahora guardará la clave tal cual la escribas mientras usemos NoOp
+      
         String claveProcesada = encoder.encode(usuario.getClave());
         usuario.setClave(claveProcesada); 
         usuarioRepo.save(usuario);
