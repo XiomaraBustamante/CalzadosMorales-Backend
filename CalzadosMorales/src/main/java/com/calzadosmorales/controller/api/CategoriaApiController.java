@@ -19,11 +19,11 @@ public class CategoriaApiController {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
-    // 📤 ENDPOINT OPTIMIZADO: Listar solo categorías que SÍ tienen calzados activos
+  
     @GetMapping(value = "/listar", produces = "application/json")
     public ResponseEntity<List<Categoria>> listarCategoriasParaMovil() {
         try {
-            // 🌟 Llamamos a la consulta inteligente con el JOIN
+           
             List<Categoria> categoriasConZapatos = categoriaRepository.findCategoriasConProductosActivos();
             
             if (categoriasConZapatos.isEmpty()) {

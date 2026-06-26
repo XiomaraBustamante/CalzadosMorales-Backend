@@ -17,12 +17,11 @@ public class ClienteApiController {
     @Autowired
     private ClienteService clienteService;
 
-    // Este endpoint lo llamará el celular usando Volley para sincronizar los clientes
+   
     @GetMapping(value = "/listar", produces = "application/json")
     public ResponseEntity<List<Cliente>> listarClientesParaMovil() {
         try {
-            // Llamamos al método de tu servicio. 
-            // Si te sale rojo "listar()", bórralo, pon "clienteService." y presiona Ctrl + Espacio para ver cómo se llama en tu proyecto.
+            
             List<Cliente> lista = clienteService.listarTodos();
             
             if (lista == null || lista.isEmpty()) {

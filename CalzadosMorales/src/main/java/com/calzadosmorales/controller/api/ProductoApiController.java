@@ -16,13 +16,13 @@ import com.calzadosmorales.service.ProductoService;
 
 @RestController
 @RequestMapping("/api/productos")
-@CrossOrigin(origins = "*") // 🚀 Permite que el emulador de Android Studio jale la data sin bloqueos de red
+@CrossOrigin(origins = "*") 
 public class ProductoApiController {
 
     @Autowired
     private ProductoService productoService; 
 
-    // Este endpoint lo llamará la app móvil para jalar el catálogo filtrado
+   
     @GetMapping(value = "/listar", produces = "application/json")
     public ResponseEntity<List<Producto>> listarProductosParaMovil() {
         try {
@@ -40,7 +40,7 @@ public class ProductoApiController {
                 return ResponseEntity.noContent().build();
             }
             
-            // Truco maestro anti-bucle para la lista general
+           
             listaFiltrada.forEach(prod -> {
                 if (prod.getImagenes() != null) {
                     prod.getImagenes().forEach(img -> img.setProducto(null));
@@ -58,26 +58,26 @@ public class ProductoApiController {
         }
     }
 
- // 🌟 ENDPOINT ULTRA-SEGURO: Construye un JSON nativo idéntico al modelo de Kotlin
+
     @GetMapping(value = "/api-detalle/{id}", produces = "application/json")
     public ResponseEntity<?> obtenerProductoCompletoParaMovil(@PathVariable("id") Integer id) {
         try {
             Producto prod = productoService.buscarProducto(id); 
             
             if (prod != null) {
-                // Creamos un mapa limpio para estructurar el JSON exactamente como lo lee Android
+                
                 java.util.Map<String, Object> jsonMap = new java.util.HashMap<>();
                 jsonMap.put("id_producto", prod.getId_producto());
                 jsonMap.put("nombre", prod.getNombre());
                 jsonMap.put("descripcion", prod.getDescripcion());
-                // Forzamos el paso de BigDecimal a Double para evitar choques en Android
+               
                 jsonMap.put("precio", prod.getPrecio() != null ? prod.getPrecio().doubleValue() : 0.0);
                 jsonMap.put("estado", prod.getEstado());
                 jsonMap.put("categoria", prod.getCategoria());
                 jsonMap.put("color", prod.getColor());
                 jsonMap.put("material", prod.getMaterial());
                 
-                // Mapeamos la lista de imágenes limpia
+             
                 java.util.List<java.util.Map<String, Object>> listaImgs = new java.util.ArrayList<>();
                 if (prod.getImagenes() != null) {
                     prod.getImagenes().forEach(img -> {
@@ -89,15 +89,15 @@ public class ProductoApiController {
                 }
                 jsonMap.put("imagenes", listaImgs);
                 
-                // Mapeamos la curva de tallas adaptada al constructor de tu Kotlin (id_producto_talla, talla, stock)
+                
                 java.util.List<java.util.Map<String, Object>> listaTallas = new java.util.ArrayList<>();
                 if (prod.getTallas() != null) {
                     prod.getTallas().forEach(t -> {
                         java.util.Map<String, Object> jsonTalla = new java.util.HashMap<>();
-                        // Seteamos el ID virtual que solicita tu ProductoTalla.kt
+                       
                         jsonTalla.put("id_producto_talla", t.getTalla() != null ? t.getTalla().getId_talla() : 0);
                         
-                        // Enviamos la data interna de la talla estructurada para tu TallaMapeo.kt
+                       
                         java.util.Map<String, Object> subTallaMap = new java.util.HashMap<>();
                         if (t.getTalla() != null) {
                             subTallaMap.put("id_talla", t.getTalla().getId_talla());

@@ -104,7 +104,7 @@ public class ProductoController {
                         ProductoTalla prodTalla = new ProductoTalla();
                         prodTalla.setStock(stockVal);
                         
-                        // Inicializamos la llave con el ID del producto si existe, sino se mapeará en el Service
+                       
                         Integer idProdContexto = (actual != null) ? actual.getId_producto() : producto.getId_producto();
                         ProductoTallaKey key = new ProductoTallaKey(idProdContexto, tallasId.get(i));
                         prodTalla.setId(key);

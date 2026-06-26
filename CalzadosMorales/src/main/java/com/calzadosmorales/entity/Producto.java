@@ -37,12 +37,12 @@ public class Producto {
 	@JoinColumn(name = "id_material")
 	private Material material;
 
-	// Se añade 'orphanRemoval = true' para purgar automáticamente fotos antiguas/duplicadas de la BD
+	
 	@OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	@JsonManagedReference(value = "producto-imagen")
 	private List<ProductoImagen> imagenes;
 
-	// 🌟 CORREGIDO: Se cambia de CascadeType.ALL a MERGE y REFRESH para evitar el error "detached entity passed to persist"
+	
 	@OneToMany(mappedBy = "producto", cascade = {CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.EAGER)
 	@JsonManagedReference(value = "producto-talla")
 	private List<ProductoTalla> tallas;

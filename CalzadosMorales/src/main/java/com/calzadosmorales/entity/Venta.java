@@ -35,11 +35,11 @@ public class Venta {
 	@Column(name = "metodo_pago", length = 20)
 	private String metodoPago;
 
-	// 🌟 NUEVO: Campo de Auditoría para discriminar canales de venta (WEB / ANDROID)
+
 	@Column(length = 20)
 	private String origen;
 
-	// 🌟 NUEVO: Token de control móvil único para asegurar idempotencia (Evita duplicados)
+
 	@Column(name = "codigo_sincronizacion", unique = true, length = 100)
 	private String codigoSincronizacion;
 
@@ -61,7 +61,7 @@ public class Venta {
 		this.tipoComprobante = "Boleta";
 		this.serie = "B001";
 		this.metodoPago = "Efectivo";
-		this.origen = "WEB"; // Fallback por defecto nativo
+		this.origen = "WEB"; 
 	}
 
 	public void agregarDetalle(DetalleVenta detalle) {
@@ -133,7 +133,7 @@ public class Venta {
 	    this.metodoPago = metodoPago;
 	}
 
-	// 🌟 GETTERS Y SETTERS NUEVOS
+
 	public String getOrigen() {
 		return origen;
 	}

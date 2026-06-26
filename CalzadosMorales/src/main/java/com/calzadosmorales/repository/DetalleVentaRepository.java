@@ -11,7 +11,7 @@ import com.calzadosmorales.entity.DetalleVenta;
 @Repository
 public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Integer> {
 
-    // PARES VENDIDOS (Se mantiene igual porque solo lee cantidad)
+  
     @Query("""
         SELECT COALESCE(SUM(d.cantidad), 0)
         FROM DetalleVenta d
@@ -22,7 +22,7 @@ public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Inte
     Integer paresVendidosMes(int idUsuario);
 
 
-    // 🔥 CORREGIDO: PRODUCTO MÁS VENDIDO (Navega a través de productoTalla)
+   
     @Query("""
         SELECT d.productoTalla.producto.nombre
         FROM DetalleVenta d
@@ -33,7 +33,7 @@ public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Inte
     List<String> productoEstrellaMes(int idUsuario, Pageable pageable);
     
     
-    // 🔥 CORREGIDO: Categorías más vendidas del mes (Navega y une con productoTalla)
+    
     @Query("""
         SELECT d.productoTalla.producto.categoria.nombre, SUM(d.cantidad)
         FROM DetalleVenta d

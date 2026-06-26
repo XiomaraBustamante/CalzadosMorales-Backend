@@ -9,7 +9,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmailService {
@@ -17,65 +20,85 @@ public class EmailService {
     @Autowired
     private PdfService pdfService;
 
-    // 🌟 PEGA AQUÍ TU API KEY DE RESEND
-    private static final String RESEND_API_KEY = "re_aUJkAEJf_Ky1KxTnoYKY3nEfVHZN26FcE";
+    
+    private static final String MAILERSEND_API_KEY = "mlsn.7a5a2b5e87ad2993b04eca118a5f372668dac79e51c2c31aeb85024180dacc3c";
+    private static final String MAILERSEND_FROM_EMAIL = "ventas@test-68zxl27ook54j905.mlsender.net"; 
+    private static final String MAILERSEND_FROM_NAME = "Calzados Morales";
+
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
     @Async
     public void enviarComprobanteCorreo(Venta venta, String correoDestino) {
-        // En el plan gratuito de Resend, solo puedes enviar correos a tu propio correo de registro
-        // Para tu presentación, asegúrate de registrar en Android tu mismo correo con el que creaste Resend
-        if (correoDestino == null || correoDestino.trim().isEmpty()) {
-            System.out.println("LOG: Correo vacío. Se cancela el envío.");
+        if (correoDestino == null || correoDestino.trim().isEmpty() || correoDestino.contains("morales.com")) {
+            System.out.println("LOG: Correo genérico o vacío detectado. Se omite el envío.");
             return;
         }
 
         try {
-            // 1. Conseguimos el PDF en bytes desde tu Jasper
+            
             byte[] pdfBytes = pdfService.obtenerVentaPDFBytes(venta);
             if (pdfBytes == null || pdfBytes.length == 0) {
                 System.err.println("❌ Error: El PDF se generó vacío.");
                 return;
             }
 
-            // 2. Convertimos el PDF a Base64 (Requisito de las APIs HTTP para adjuntar archivos)
+         
             String pdfBase64 = Base64.getEncoder().encodeToString(pdfBytes);
             String nombreArchivo = venta.getTipoComprobante() + "_" + venta.getSerie() + "_" + venta.getNumero() + ".pdf";
 
-            // 3. Estructuramos el JSON exacto que pide Resend para enviar correos con adjuntos
-            String jsonPayload = "{"
-                + "\"from\": \"Calzados Morales <onboarding@resend.dev>\"," // Remitente por defecto gratuito
-                + "\"to\": [\"" + correoDestino + "\"],"
-                + "\"subject\": \"👟 Tu Comprobante de Compra - Calzados Morales (" + venta.getSerie() + "-" + venta.getNumero() + ")\","
-                + "\"html\": \"<h3>¡Gracias por tu compra en Calzados Morales!</h3><p>Adjunto encontrarás tu comprobante digital en formato PDF.</p>\","
-                + "\"attachments\": ["
-                + "  {"
-                + "    \"content\": \"" + pdfBase64 + "\","
-                + "    \"filename\": \"" + nombreArchivo + "\""
-                + "  }"
-                + "]"
-                + "}";
+           
+            String clienteNombre = venta.getCliente() != null ? "Cliente" : "Cliente General";
+            String asunto = "👟 Tu Comprobante de Compra - Calzados Morales (" + venta.getSerie() + "-" + venta.getNumero() + ")";
+            
+            String cuerpoHtml = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto;'>"
+                    + "<h2 style='color: #2c3e50;'>¡Gracias por tu compra!</h2>"
+                    + "<p>Adjunto encontrarás tu <strong>" + venta.getTipoComprobante() + "</strong> digital en formato PDF.</p>"
+                    + "<p>Total pagado: <strong>S/ " + venta.getTotal() + "</strong></p>"
+                    + "<hr/><p style='font-size: 12px; color: #7f8c8d;'>Calzados Morales &bull; Lima, Perú</p>"
+                    + "</div>";
 
-            // 4. Construimos la petición HTTP POST hacia los servidores de Resend (Puerto 443 - HTTPS Seguro)
-            HttpClient client = HttpClient.newHttpClient();
+           
+            Map<String, Object> jsonMap = Map.of(
+                "from", Map.of("email", MAILERSEND_FROM_EMAIL, "name", MAILERSEND_FROM_NAME),
+                "to", List.of(Map.of("email", correoDestino, "name", clienteNombre)),
+                "subject", asunto,
+                "html", cuerpoHtml,
+                "attachments", List.of(
+                    Map.of(
+                        "content", pdfBase64,
+                        "filename", nombreArchivo,
+                        "type", "application/pdf",
+                        "disposition", "attachment"
+                    )
+                )
+            );
+
+            String jsonBody = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(jsonMap);
+
+            
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.resend.com/emails"))
-                    .header("Authorization", "Bearer " + RESEND_API_KEY)
+                    .uri(URI.create("https://api.mailersend.com/v1/email"))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                    .header("Authorization", "Bearer " + MAILERSEND_API_KEY)
+                    .header("X-Requested-With", "XMLHttpRequest")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .timeout(Duration.ofSeconds(20))
                     .build();
 
-            // 5. Enviamos de forma asíncrona en el backend
-            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+           
+            httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                     .thenAccept(response -> {
-                        if (response.statusCode() == 200 || response.statusCode() == 201) {
-                            System.out.println("✅ RESEND API SUCCESS: ¡Correo enviado con éxito en Railway!");
+                        if (response.statusCode() == 202 || response.statusCode() == 200) {
+                            System.out.println("✅ MAILERSEND SUCCESS: ¡Comprobante enviado libremente a: " + correoDestino);
                         } else {
-                            System.err.println("❌ RESEND API ERROR: Código de respuesta " + response.statusCode() + " - " + response.body());
+                            System.err.println("❌ MAILERSEND ERROR HTTP " + response.statusCode() + " - " + response.body());
                         }
                     });
 
         } catch (Exception e) {
-            System.err.println("❌ ERROR EN EL SERVICIO HTTP DE RESEND: " + e.getMessage());
+            System.err.println("❌ ERROR CRÍTICO EN INFRAESTRUCTURA MAILERSEND: " + e.getMessage());
         }
     }
 }

@@ -22,24 +22,24 @@ public class UsuarioApiController {
     @Autowired
     private PasswordEncoder encoder;
 
-    // Usamos POST porque los datos viajan ocultos en el cuerpo de la petición
+    
     @PostMapping(value = "/login", produces = "application/json")
     public ResponseEntity<?> loginParaMovil(@RequestBody LoginRequest loginReq) {
         try {
-            // 1. Buscar al usuario en la base de datos de Railway
+            
             Usuario u = usuarioRepo.findByUsuario(loginReq.getUsuario());
             
-            // 2. Validar si existe y si la clave encriptada coincide
+           
             if (u != null && encoder.matches(loginReq.getClave(), u.getClave())) {
                 if (!u.getEstado()) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN)
                             .body("{\"message\": \"El usuario está desactivado\"}");
                 }
-                // Si todo está bien, le respondemos los datos del usuario al celular en JSON
+                
                 return ResponseEntity.ok(u);
             }
             
-            // 3. Si las credenciales están mal
+            
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("{\"message\": \"Usuario o clave incorrectos\"}");
                     

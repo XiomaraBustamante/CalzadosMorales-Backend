@@ -30,7 +30,7 @@ public class ClienteController {
         return "clientes";
     }
 
-    // ==================== PERSONA NATURAL ====================
+  
 
     @PostMapping("/guardarNatural")
     public String guardarPersonaNatural(
@@ -47,18 +47,18 @@ public class ClienteController {
             return "clientes";
         }
 
-        // --- CORRECCIÓN DEL ESTADO INACTIVO ---
+       
         if (persona.getId_cliente() != null) {
-            // Es una EDICIÓN: Buscamos el original en BD
+           
             PersonaNatural original = service.buscarPersonaNaturalPorId(persona.getId_cliente());
             if (original != null) {
-                persona.setEstado(original.getEstado()); // MANTENEMOS SU ESTADO
-                persona.setFecha_registro(original.getFecha_registro()); // MANTENEMOS SU FECHA
+                persona.setEstado(original.getEstado()); 
+                persona.setFecha_registro(original.getFecha_registro()); 
             }
         }
-        // --------------------------------------
+       
 
-        // Validar Duplicados (Solo si es nuevo ID o cambia el dato)
+    
         PersonaNatural existeDni = service.buscarPorDni(persona.getDni());
         if (existeDni != null && !existeDni.getId_cliente().equals(persona.getId_cliente())) {
             flash.addFlashAttribute("error", "El DNI " + persona.getDni() + " ya existe.");
@@ -71,7 +71,7 @@ public class ClienteController {
         return "redirect:/clientes";
     }
 
-    // ==================== GUARDAR PERSONA JURÍDICA (CORREGIDO) ====================
+
     @PostMapping("/guardarJuridica")
     public String guardarPersonaJuridica(
             @Valid @ModelAttribute("personaJuridica") PersonaJuridica persona,
@@ -87,15 +87,15 @@ public class ClienteController {
             return "clientes";
         }
 
-        // --- CORRECCIÓN DEL ESTADO INACTIVO ---
+
         if (persona.getId_cliente() != null) {
             PersonaJuridica original = service.buscarPersonaJuridicaPorId(persona.getId_cliente());
             if (original != null) {
-                persona.setEstado(original.getEstado()); // MANTENEMOS SU ESTADO
+                persona.setEstado(original.getEstado()); 
                 persona.setFecha_registro(original.getFecha_registro());
             }
         }
-        // --------------------------------------
+      
 
         PersonaJuridica existeRuc = service.buscarPorRuc(persona.getRuc());
         if (existeRuc != null && !existeRuc.getId_cliente().equals(persona.getId_cliente())) {
@@ -128,7 +128,7 @@ public class ClienteController {
         return false;
     }
 
-    // ==================== CAMBIAR ESTADO ====================
+ 
     @GetMapping("/cambiarEstado/{id}/{estado}/{tipo}")
     public String cambiarEstado(
             @PathVariable("id") Integer id, 

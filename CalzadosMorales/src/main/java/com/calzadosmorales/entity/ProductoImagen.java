@@ -17,10 +17,10 @@ public class ProductoImagen {
 
     @ManyToOne
     @JoinColumn(name = "id_producto", nullable = false)
-    @JsonBackReference // 🔥 CRÍTICO: Evita que el JSON entre en un bucle infinito
+    @JsonBackReference 
     private Producto producto;
 
-    // --- CONSTRUCTORES ---
+
     public ProductoImagen() {}
 
     public ProductoImagen(String imagenUrl, Producto producto) {
@@ -28,7 +28,7 @@ public class ProductoImagen {
         this.producto = producto;
     }
 
-    // --- GETTERS Y SETTERS ---
+
     public int getIdImagen() { return idImagen; }
     public void setIdImagen(int idImagen) { this.idImagen = idImagen; }
 

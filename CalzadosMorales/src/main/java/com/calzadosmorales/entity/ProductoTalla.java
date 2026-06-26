@@ -26,14 +26,14 @@ public class ProductoTalla {
 
     public ProductoTalla() {}
 
-    // 🌟 TRUCO CORPORATIVO: Generamos la propiedad virtual para hacer match perfecto con Android
+   
     @JsonProperty("id_producto_talla")
     public int getIdProductoTallaVirtual() {
-        // Usamos el id de la talla como identificador plano para el constructor de Kotlin
+     
         return this.talla != null ? this.talla.getId_talla() : 0;
     }
 
-    // --- GETTERS Y SETTERS ORIGINALES ---
+   
     public ProductoTallaKey getId() { return id; }
     public void setId(ProductoTallaKey id) { this.id = id; }
 

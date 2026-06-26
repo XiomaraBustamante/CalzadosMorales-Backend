@@ -20,7 +20,9 @@ public class VentaService {
     @Autowired
     private ProductoTallaRepository productoTallaRepository;
 
-    // Registrar la venta y descontar las unidades de la tabla producto_talla
+    @Autowired
+    private EmailService emailService; 
+
     @Transactional
     public Venta registrarVenta(Venta venta) {
         for (DetalleVenta detalle : venta.getDetalles()) {
@@ -34,13 +36,28 @@ public class VentaService {
                 throw new RuntimeException("⚠️ Alerta: Stock insuficiente para el calzado seleccionado.");
             }
 
-            // Descuento en caliente en Railway
+          
             pt.setStock(pt.getStock() - detalle.getCantidad());
             productoTallaRepository.save(pt);
             
             detalle.setVenta(venta);
         }
-        return ventaRepository.save(venta);
+        
+       
+        Venta ventaGuardada = ventaRepository.save(venta);
+
+        
+        try {
+            if (ventaGuardada.getCliente() != null && ventaGuardada.getCliente().getEmail() != null) {
+                String emailCliente = ventaGuardada.getCliente().getEmail();
+               
+                emailService.enviarComprobanteCorreo(ventaGuardada, emailCliente);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error secundario al enviar el correo desde la Web: " + e.getMessage());
+        }
+
+        return ventaGuardada;
     }
 
     public Venta buscarPorId(Integer id) {

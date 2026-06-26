@@ -35,7 +35,7 @@ public class CategoriaController {
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute Categoria categoria, RedirectAttributes flash) {
         
-        // 1. BUSCAR SI YA EXISTE ESE NOMBRE EN LA BD
+
         Categoria posibleDuplicado = repo.findByNombre(categoria.getNombre());
 
         if (posibleDuplicado != null) {
@@ -45,7 +45,7 @@ public class CategoriaController {
                 return "redirect:/categorias";
             }
             
-            // CASO 2: EDITANDO 
+           
            
             if (!categoria.getId_categoria().equals(posibleDuplicado.getId_categoria())) {
                 flash.addFlashAttribute("error", "No puedes usar el nombre '" + categoria.getNombre() + "' porque ya pertenece a otra categoría.");
@@ -73,7 +73,7 @@ public class CategoriaController {
     // LÓGICA DE ACTIVAR / DESACTIVAR 
     @GetMapping("/cambiarEstado/{id}/{estado}")
     public String cambiarEstado(@PathVariable("id") Integer id, @PathVariable("estado") boolean nuevoEstado, RedirectAttributes flash) {
-        // Buscamos la categoria
+      
         Categoria cat = repo.findById(id).orElse(null);
         if (cat != null) {
             cat.setEstado(nuevoEstado);

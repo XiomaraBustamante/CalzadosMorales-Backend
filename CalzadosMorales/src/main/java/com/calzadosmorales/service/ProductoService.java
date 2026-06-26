@@ -26,24 +26,24 @@ public class ProductoService {
 
     @Transactional
     public void guardarProducto(Producto p) {
-        // 1. Guardamos primero el producto base para asegurar la existencia del ID de MySQL
+       
         List<ProductoTalla> tallasTemporales = p.getTallas();
-        p.setTallas(new ArrayList<>()); // Desacoplamos temporalmente de la cascada
+        p.setTallas(new ArrayList<>()); 
         
         if (p.getImagenes() != null) {
             p.getImagenes().forEach(img -> img.setProducto(p));
         }
         
-        // Guardado/Actualización de la entidad maestra
+      
         Producto productoPersistido = productoRepo.save(p);
 
-        // 2. Persistencia manual y controlada de la curva de tallas/stocks
+       
         if (tallasTemporales != null) {
             for (ProductoTalla pt : tallasTemporales) {
                 pt.setProducto(productoPersistido);
-                // Aseguramos que la llave compuesta tome el ID generado en el paso anterior
+                
                 pt.getId().setId_producto(productoPersistido.getId_producto());
-                productoTallaRepo.save(pt); // Sincronización forzada directa en la BD
+                productoTallaRepo.save(pt); 
                 productoPersistido.getTallas().add(pt);
             }
         }

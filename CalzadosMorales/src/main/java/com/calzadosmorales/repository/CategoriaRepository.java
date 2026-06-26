@@ -13,7 +13,7 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
  
     List<Categoria> findByEstado(Boolean estado);
 
-    // 🌟 CONSULTA MAESTRA: Trae categorías activas que tienen productos activos vinculados (Sin duplicados)
+   
     @Query("SELECT DISTINCT c FROM Producto p JOIN p.categoria c WHERE c.estado = true AND p.estado = true")
     List<Categoria> findCategoriasConProductosActivos();
 }

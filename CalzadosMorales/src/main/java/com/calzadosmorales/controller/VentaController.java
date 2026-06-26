@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.calzadosmorales.entity.Cliente;
+import com.calzadosmorales.entity.PersonaNatural;
 import com.calzadosmorales.entity.PersonaJuridica;
 import com.calzadosmorales.entity.DetalleVenta;
 import com.calzadosmorales.entity.ProductoTalla;
@@ -65,7 +66,7 @@ public class VentaController {
     @Autowired
     private ExcelService excelService; 
 
-    // PANTALLA PRINCIPAL
+
     @GetMapping("/nueva")
     public String nuevaVenta(Model model, HttpSession session) {
         model.addAttribute("productos", productoService.listarProductos());
@@ -86,7 +87,7 @@ public class VentaController {
         return "nueva_venta"; 
     }
 
-    // AGREGAR AL CARRITO
+
     @PostMapping("/agregar")
     public String agregarProducto(
             @RequestParam("id_producto") Integer idProducto,
@@ -147,7 +148,7 @@ public class VentaController {
         return "redirect:/ventas/nueva";
     }
 
-    // QUITAR Y LIMPIAR
+
     @GetMapping("/quitar/{index}")
     public String quitarDelCarrito(@PathVariable("index") int index, HttpSession session) {
         List<DetalleVenta> carrito = (List<DetalleVenta>) session.getAttribute("carrito");
@@ -161,7 +162,7 @@ public class VentaController {
         return "redirect:/ventas/nueva";
     }
 
-    // 🔥 REFRACTORIZADO: GUARDAR VENTA DESDE PORTAL WEB (Aislado de la numeración móvil)
+  
     @PostMapping("/guardar")
     public String guardarVenta(
             @RequestParam("id_cliente") Integer idCliente, 
@@ -231,7 +232,6 @@ public class VentaController {
         }
     }
 
-    // 🌟 CORREGIDO: Inyección de @ResponseBody y cabeceras PDF para evitar el Whitelabel 404
     @GetMapping("/verPDF/{id}")
     @ResponseBody
     public void verPDF(@PathVariable("id") Integer idVenta, HttpServletResponse response) {
@@ -248,6 +248,7 @@ public class VentaController {
         }
     }
 
+
     @GetMapping("/listar")
     @ResponseBody 
     public ResponseEntity<?> listarVentas() {
@@ -261,13 +262,19 @@ public class VentaController {
                 
                 String clienteNombre = "Cliente General";
                 if (v.getCliente() != null) {
-                    clienteNombre = "Cliente Código: " + v.getCliente().getId_cliente();
+                    Cliente c = v.getCliente();
+                    if (c instanceof PersonaNatural) {
+                        PersonaNatural pn = (PersonaNatural) c;
+                        clienteNombre = pn.getNombre() + " " + pn.getApellido();
+                    } else if (c instanceof PersonaJuridica) {
+                        PersonaJuridica pj = (PersonaJuridica) c;
+                        clienteNombre = pj.getRazonSocial();
+                    }
                 }
                 
                 map.put("cliente_nombre", clienteNombre);
                 map.put("monto_total", v.getTotal());
                 map.put("fecha_registro", v.getFecha() != null ? v.getFecha().toString().replace("T", " ") : "");
-                
                 map.put("numero_boleta", v.getSerie() != null && v.getNumero() != null ? v.getSerie() + "-" + v.getNumero() : "BOL-000");
                 respuestaLimpia.add(map);
             }

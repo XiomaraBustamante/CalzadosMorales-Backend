@@ -22,7 +22,7 @@ public class ClienteService {
     @Autowired
     private PersonaJuridicaRepository personaJuridicaRepository;
 
-    // ========== PERSONA NATURAL ==========
+
     
     public List<PersonaNatural> listarPersonasNaturales() {
         return personaNaturalRepository.findAll();
@@ -40,7 +40,7 @@ public class ClienteService {
         return personaNaturalRepository.findByDni(dni);
     }
 
-    // ========== PERSONA JURÍDICA ==========
+  
     
     public List<PersonaJuridica> listarPersonasJuridicas() {
         return personaJuridicaRepository.findAll();
@@ -63,8 +63,7 @@ public class ClienteService {
         return personaJuridicaRepository.findByRazonSocial(razonSocial);
     }
 
-    // ========== VALIDACIONES COMUNES ==========
-    
+
     public Cliente buscarPorEmail(String email) {
         return clienteRepository.findByEmail(email);
     }

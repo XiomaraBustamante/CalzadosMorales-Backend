@@ -15,7 +15,7 @@ public class DetalleVenta {
 	@JoinColumn(name = "id_venta", nullable = false)
 	private Venta venta;
 
-	// 🔥 MODIFICADO: Ahora apunta a la variante de la combinación de producto y talla
+	
 	@ManyToOne
 	@JoinColumns({
 		@JoinColumn(name = "id_producto", referencedColumnName = "id_producto", nullable = false),
@@ -51,7 +51,7 @@ public class DetalleVenta {
 		this.venta = venta;
 	}
 
-	// 🔥 NUEVOS GETTERS Y SETTERS ACTUALIZADOS
+
 	public ProductoTalla getProductoTalla() {
 		return productoTalla;
 	}

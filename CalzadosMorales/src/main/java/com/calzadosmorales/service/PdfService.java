@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @Service
 public class PdfService {
 
-    // MÉTODO 1: Mantiene la descarga o visualización vía navegador web (Inalterado)
     public void exportarVentaPDF(HttpServletResponse response, Venta venta) {
         try {
             byte[] pdfBytes = obtenerVentaPDFBytes(venta);
@@ -36,15 +35,14 @@ public class PdfService {
         }
     }
 
-    // 🌟 NUEVO MÉTODO: Genera el archivo en crudo (byte[]) aislado de contextos HTTP. 
-    // Reutilizado de forma segura tanto por controladores Web/REST como por EmailService.
+    
     public byte[] obtenerVentaPDFBytes(Venta venta) {
         try {
-            // 1. CARGAR DISEÑO
+            
             File file = ResourceUtils.getFile("classpath:reports/comprobante.jrxml");
             JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
 
-            // 2. PREPARAR PARÁMETROS
+            
             Map<String, Object> parameters = new HashMap<>();
             
             String nombreCliente = "";
@@ -72,7 +70,7 @@ public class PdfService {
             parameters.put("p_serie", venta.getSerie() != null ? venta.getSerie() : "001");
             parameters.put("p_numero", venta.getNumero() != null ? venta.getNumero() : "00000000");
 
-            // 3. CÁLCULO DE TOTALES
+        
             BigDecimal totalVenta = venta.getTotal() != null ? venta.getTotal() : BigDecimal.ZERO;
             BigDecimal gravada = totalVenta.divide(new BigDecimal("1.18"), 2, RoundingMode.HALF_UP);
             BigDecimal igv = totalVenta.subtract(gravada);
@@ -81,7 +79,7 @@ public class PdfService {
             parameters.put("igv", igv);
             parameters.put("total", totalVenta);
 
-            // 4. MAPEADO DE DETALLES
+           
             var detalleDS = venta.getDetalles().stream().map(d -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("cantidad", d.getCantidad()); 
@@ -97,7 +95,7 @@ public class PdfService {
 
             parameters.put("ItemDataSource", new JRBeanCollectionDataSource(detalleDS));
 
-            // 5. COMPILACIÓN DE DATA EN MEMORIA
+         
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JRBeanCollectionDataSource(detalleDS));
             
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

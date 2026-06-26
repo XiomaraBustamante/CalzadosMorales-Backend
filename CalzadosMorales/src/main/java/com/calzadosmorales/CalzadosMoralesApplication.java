@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableAsync; // 🌟 NUEVO IMPO
 import java.util.TimeZone;
 
 @SpringBootApplication
-@EnableAsync // 🌟 OBLIGATORIO: Activa la ejecución en segundo plano para el EmailService
+@EnableAsync 
 public class CalzadosMoralesApplication {
 
     @PostConstruct

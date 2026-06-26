@@ -10,9 +10,7 @@ import com.calzadosmorales.entity.Venta;
 @Repository
 public interface VentaRepository extends JpaRepository<Venta, Integer> {
 
-    // ==========================================
-    // VENDEDOR - DASHBOARD
-    // ==========================================
+  
 
     @Query(value = "CALL sp_VentasMesVendedor(:id)", nativeQuery = true)
     Double getVentasMes(@Param("id") int idVendedor);
@@ -38,9 +36,7 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     @Query(value = "CALL sp_MisUltimosSieteClientes(:id)", nativeQuery = true)
     List<Object[]> getUltimosSieteClientes(@Param("id") int idVendedor);
 
-    // ==========================================
-    // ADMINISTRADOR - DASHBOARD
-    // ==========================================
+  
 
     @Query(value = "CALL sp_AdminCajaHoy()", nativeQuery = true)
     Double getAdminCajaHoy();
@@ -66,9 +62,7 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     @Query(value = "CALL sp_AdminTopCincoVendedores()", nativeQuery = true)
     List<Object[]> getAdminTopCincoVendedores();
     
-    // ==========================================
-    // CONSULTAS DE PANTALLAS (PUENTES DE PROCS)
-    // ==========================================
+
 
     @Query(value = "CALL sp_ListarMisVentas(:id)", nativeQuery = true)
     List<Object[]> listarMisVentas(@Param("id") int idUsuario);
@@ -91,14 +85,12 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     @Query(value = "CALL sp_AdminAnalisisHorarioVentas()", nativeQuery = true)
     List<Object[]> adminAnalisisHorario();
 
-    // ==========================================
-    // 🌟 EXTENSIONES DE CONTROL API MÓVIL (NUEVO)
-    // ==========================================
 
-    // Valida la existencia del token UUID móvil de forma atómica para evitar duplicación por red
+
+   
     boolean existsByCodigoSincronizacion(String codigoSincronizacion);
 
-    // 🌟 CORREGIDO: Convierte la columna pura a entero (ej: "000001" -> 1) filtrando por el carril de serie (B001 o M001)
+
     @Query(value = "SELECT MAX(CAST(numero AS UNSIGNED)) FROM venta WHERE serie = :serie", nativeQuery = true)
     Integer findMaxCorrelativoBySerie(@Param("serie") String serie);
 }

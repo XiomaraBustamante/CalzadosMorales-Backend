@@ -26,7 +26,7 @@ public class MaterialController {
     public String listar(Model model) {
         model.addAttribute("materiales", service.listarTodos());
         model.addAttribute("material", new Material());
-        return "materiales"; // Busca materiales.html
+        return "materiales"; 
     }
 
     @PostMapping("/guardar")

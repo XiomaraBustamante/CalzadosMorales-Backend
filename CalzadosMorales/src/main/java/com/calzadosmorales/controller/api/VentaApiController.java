@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import com.calzadosmorales.entity.*;
 import com.calzadosmorales.repository.*;
-import com.calzadosmorales.service.EmailService; // 🌟 NUEVO IMPORT
+import com.calzadosmorales.service.EmailService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,14 +22,13 @@ public class VentaApiController {
     @Autowired private ProductoTallaRepository productoTallaRepository;
     @Autowired private ClienteRepository clienteRepository;
     @Autowired private UsuarioRepository usuarioRepository;
-    @Autowired private EmailService emailService; // 🌟 NUEVA INYECCIÓN
+    @Autowired private EmailService emailService;
 
     @PostMapping("/guardar")
-    @Transactional(rollbackFor = Exception.class) // 🌟 ATOMICIDAD: Garantiza rollback completo si algo falla en la iteración de stock
+    @Transactional(rollbackFor = Exception.class)
     @SuppressWarnings("unchecked")
     public ResponseEntity<?> guardarVenta(@RequestBody Map<String, Object> requestBody) {
         try {
-            // 🌟 VALIDACIÓN DE IDEMPOTENCIA: Evita duplicaciones por reintentos de red desde Android
             String codigoSincronizacion = (String) requestBody.get("codigo_sincronizacion");
             if (codigoSincronizacion != null && !codigoSincronizacion.trim().isEmpty()) {
                 if (ventaRepository.existsByCodigoSincronizacion(codigoSincronizacion)) {
@@ -56,7 +55,7 @@ public class VentaApiController {
             if (clienteExistente.isPresent()) {
                 clienteParaVenta = clienteExistente.get();
             } else {
-                if (documento.length() == 8) { // Persona Natural
+                if (documento.length() == 8) {
                     PersonaNatural natural = new PersonaNatural();
                     natural.setNombre(clienteJson.get("nombre").toString());
                     natural.setDni(documento); 
@@ -81,7 +80,7 @@ public class VentaApiController {
                     natural.setEstado(true);
                     
                     clienteParaVenta = clienteRepository.save(natural);
-                } else { // Persona Jurídica
+                } else {
                     PersonaJuridica juridica = new PersonaJuridica();
                     juridica.setRazonSocial(clienteJson.get("nombre").toString()); 
                     juridica.setRuc(documento);
@@ -98,7 +97,6 @@ public class VentaApiController {
                 }
             }
 
-            // 1. Crear la Cabecera de la Venta
             Venta nuevaVenta = new Venta();
             nuevaVenta.setFecha(LocalDateTime.now());
             nuevaVenta.setEstado("REGISTRADA");
@@ -109,8 +107,8 @@ public class VentaApiController {
             String serieMovil = "Factura".equalsIgnoreCase(tipoComp) ? "MF01" : "MB01";
             
             Integer ultimoCorrelativo = ventaRepository.findMaxCorrelativoBySerie(serieMovil);
-            int siguienteCorrelativo = (ultimoCorrelativo != null) ? ultimoCorrelativo + 1 : 1;
-            String numeroComprobantePuro = String.format("%06d", siguienteCorrelativo);
+            int siguiendoCorrelativo = (ultimoCorrelativo != null) ? ultimoCorrelativo + 1 : 1;
+            String numeroComprobantePuro = String.format("%06d", siguiendoCorrelativo);
             
             nuevaVenta.setNumero(numeroComprobantePuro); 
             nuevaVenta.setSerie(serieMovil);
@@ -121,7 +119,7 @@ public class VentaApiController {
             nuevaVenta.setTipoComprobante(tipoComp);
             nuevaVenta.setMetodoPago(metPago);
 
-            Integer idUsuarioRequest = 2; // Fallback seguro (Vendedor)
+            Integer idUsuarioRequest = 2;
             if (requestBody.get("id_usuario") != null) {
                 try {
                     idUsuarioRequest = Integer.parseInt(requestBody.get("id_usuario").toString());
@@ -148,10 +146,8 @@ public class VentaApiController {
             }
             nuevaVenta.setTotal(totalVenta);
 
-            // Guardamos la cabecera en la base de datos central
             Venta ventaGuardada = ventaRepository.save(nuevaVenta);
 
-            // 2. Detalles de Venta y Ajuste de Stock
             for (Map<String, Object> det : detallesJson) {
                 Integer idProducto = (Integer) det.get("id_producto");
                 Integer idTalla = (Integer) det.get("id_talla");
@@ -182,8 +178,6 @@ public class VentaApiController {
                 }
             }
 
-            // 🌟 CONTROL OMNICANAL ASÍNCRONO: Dispara el hilo secundario de email en background
-            // Extrae el correo real del cliente ingresado en la transacción de Android
             String emailCliente = clienteParaVenta.getEmail();
             emailService.enviarComprobanteCorreo(ventaGuardada, emailCliente);
 
@@ -200,6 +194,7 @@ public class VentaApiController {
         }
     }
 
+
     @GetMapping("/listar")
     public ResponseEntity<?> listarVentas() {
         try {
@@ -212,12 +207,19 @@ public class VentaApiController {
                 
                 String clienteNombre = "Cliente General";
                 if (v.getCliente() != null) {
-                    clienteNombre = "Cliente Código: " + v.getCliente().getId_cliente();
+                    Cliente c = v.getCliente();
+                    if (c instanceof PersonaNatural) {
+                        PersonaNatural pn = (PersonaNatural) c;
+                        clienteNombre = pn.getNombre() + " " + pn.getApellido();
+                    } else if (c instanceof PersonaJuridica) {
+                        PersonaJuridica pj = (PersonaJuridica) c;
+                        clienteNombre = pj.getRazonSocial();
+                    }
                 }
                 
                 map.put("cliente_nombre", clienteNombre);
                 map.put("monto_total", v.getTotal());
-                map.put("fecha_registro", v.getFecha().toString().replace("T", " "));
+                map.put("fecha_registro", v.getFecha() != null ? v.getFecha().toString().replace("T", " ") : "");
                 map.put("numero_boleta", v.getSerie() != null && v.getNumero() != null ? v.getSerie() + "-" + v.getNumero() : "BOL-000");
                 respuestaLimpia.add(map);
             }

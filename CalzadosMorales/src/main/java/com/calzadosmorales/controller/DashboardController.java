@@ -26,7 +26,7 @@ public class DashboardController {
     @GetMapping("/index")
     public String dashboard(Model model, Authentication auth) {
     	
-        // Verificacion de seguridad basica
+
         if (auth == null || !auth.isAuthenticated()) {
             return "redirect:/login"; 
         }
@@ -40,19 +40,18 @@ public class DashboardController {
         }
 
         int rolId = u.getRol().getId_rol();
-        
-        // Datos de cabecera comunes
+
         model.addAttribute("userNombreCompleto", u.getNombre());
-        model.addAttribute("userRol", u.getRol().getNombre()); // Útil para mostrar "Admin" o "Vendedor"
+        model.addAttribute("userRol", u.getRol().getNombre()); 
         model.addAttribute("rolId", rolId);
         
-        // Carga de datos segun Rol
-        if (rolId == 1) { // ADMINISTRADOR
+       
+        if (rolId == 1) { 
             Map<String, Object> statsAdmin = adminService.cargarPanelAdministrativo();
             if (statsAdmin != null) model.addAllAttributes(statsAdmin); 
 
         } 
-        else if (rolId == 2) { // VENDEDOR
+        else if (rolId == 2) {
             Map<String, Object> datosVendedor = vendedorService.obtenerDatosDashboardVendedor(u.getId_usuario());
             if (datosVendedor != null) model.addAllAttributes(datosVendedor); 
 

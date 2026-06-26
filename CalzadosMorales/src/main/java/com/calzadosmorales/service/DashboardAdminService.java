@@ -17,7 +17,7 @@ public class DashboardAdminService {
     public Map<String, Object> cargarPanelAdministrativo() {
         Map<String, Object> datos = new HashMap<>();
         
-        // TARJETAS 
+
         
         Double ingresos = ventaRepo.getAdminCajaHoy();
         datos.put("ingresosDia", ingresos != null ? ingresos : 0.0);
@@ -34,12 +34,12 @@ public class DashboardAdminService {
         Double promedio = ventaRepo.getAdminTicketPromedio();
         datos.put("ticketPromedio", promedio != null ? promedio : 0.0);
 
-        // DATOS PARA GRAFICOS
+  
 
         datos.put("ventasSemanales", ventaRepo.getAdminVentasSemanales());
         datos.put("stockCategorias", ventaRepo.getAdminStockPorCategoria());
 
-        // RANKING DE VENDEDORES 
+
         datos.put("topVendedores", ventaRepo.getAdminTopCincoVendedores());
 
         return datos;
