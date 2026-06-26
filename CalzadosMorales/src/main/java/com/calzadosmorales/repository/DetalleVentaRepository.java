@@ -9,41 +9,39 @@ import org.springframework.stereotype.Repository;
 import com.calzadosmorales.entity.DetalleVenta;
 
 @Repository
-public interface DetalleVentaRepository extends JpaRepository<DetalleVenta,Integer>{
+public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Integer> {
 
-    // PARES VENDIDOS
+    // PARES VENDIDOS (Se mantiene igual porque solo lee cantidad)
     @Query("""
-        SELECT COALESCE(SUM(d.cantidad),0)
+        SELECT COALESCE(SUM(d.cantidad), 0)
         FROM DetalleVenta d
         WHERE d.venta.usuario.id_usuario = ?1
-        AND MONTH(d.venta.fecha)=MONTH(CURRENT_DATE)
-        AND YEAR(d.venta.fecha)=YEAR(CURRENT_DATE)
+        AND MONTH(d.venta.fecha) = MONTH(CURRENT_DATE)
+        AND YEAR(d.venta.fecha) = YEAR(CURRENT_DATE)
     """)
     Integer paresVendidosMes(int idUsuario);
 
 
-    // PRODUCTO MÁS VENDIDO (TOP 1)
+    // 🔥 CORREGIDO: PRODUCTO MÁS VENDIDO (Navega a través de productoTalla)
     @Query("""
-        SELECT d.producto.nombre
+        SELECT d.productoTalla.producto.nombre
         FROM DetalleVenta d
         WHERE d.venta.usuario.id_usuario = ?1
-        GROUP BY d.producto.nombre
+        GROUP BY d.productoTalla.producto.nombre
         ORDER BY SUM(d.cantidad) DESC
     """)
     List<String> productoEstrellaMes(int idUsuario, Pageable pageable);
     
-   // Categorías más vendidas del mes
+    
+    // 🔥 CORREGIDO: Categorías más vendidas del mes (Navega y une con productoTalla)
     @Query("""
-    	    SELECT p.categoria.nombre, SUM(d.cantidad)
-    	    FROM DetalleVenta d
-    	    JOIN d.producto p
-    	    WHERE d.venta.usuario.id_usuario = ?1
-    	    AND MONTH(d.venta.fecha)=MONTH(CURRENT_DATE)
-    	    AND YEAR(d.venta.fecha)=YEAR(CURRENT_DATE)
-    	    GROUP BY p.categoria.nombre
-    	""")
-    	List<Object[]> categoriasMasVendidas(int idUsuario);
-
+        SELECT d.productoTalla.producto.categoria.nombre, SUM(d.cantidad)
+        FROM DetalleVenta d
+        WHERE d.venta.usuario.id_usuario = ?1
+        AND MONTH(d.venta.fecha) = MONTH(CURRENT_DATE)
+        AND YEAR(d.venta.fecha) = YEAR(CURRENT_DATE)
+        GROUP BY d.productoTalla.producto.categoria.nombre
+    """)
+    List<Object[]> categoriasMasVendidas(int idUsuario);
 
 }
-

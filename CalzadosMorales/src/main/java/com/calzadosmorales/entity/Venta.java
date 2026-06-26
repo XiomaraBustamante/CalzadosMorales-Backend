@@ -31,16 +31,25 @@ public class Venta {
 
 	@Column(length = 20)
 	private String numero;
+	
+	@Column(name = "metodo_pago", length = 20)
+	private String metodoPago;
+
+	// 🌟 NUEVO: Campo de Auditoría para discriminar canales de venta (WEB / ANDROID)
+	@Column(length = 20)
+	private String origen;
+
+	// 🌟 NUEVO: Token de control móvil único para asegurar idempotencia (Evita duplicados)
+	@Column(name = "codigo_sincronizacion", unique = true, length = 100)
+	private String codigoSincronizacion;
 
 	@ManyToOne
 	@JoinColumn(name = "id_usuario", nullable = false)
 	private Usuario usuario;
-
-
     
-    @ManyToOne
-    @JoinColumn(name = "id_cliente", nullable = false)
-    private Cliente cliente;
+	@ManyToOne
+	@JoinColumn(name = "id_cliente", nullable = false)
+	private Cliente cliente;
 	
 	@OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<DetalleVenta> detalles = new ArrayList<>();
@@ -51,6 +60,8 @@ public class Venta {
 		this.estado = "REGISTRADA";
 		this.tipoComprobante = "Boleta";
 		this.serie = "B001";
+		this.metodoPago = "Efectivo";
+		this.origen = "WEB"; // Fallback por defecto nativo
 	}
 
 	public void agregarDetalle(DetalleVenta detalle) {
@@ -112,6 +123,31 @@ public class Venta {
 
 	public void setNumero(String numero) {
 		this.numero = numero;
+	}
+	
+	public String getMetodoPago() {
+	    return metodoPago;
+	}
+
+	public void setMetodoPago(String metodoPago) {
+	    this.metodoPago = metodoPago;
+	}
+
+	// 🌟 GETTERS Y SETTERS NUEVOS
+	public String getOrigen() {
+		return origen;
+	}
+
+	public void setOrigen(String origen) {
+		this.origen = origen;
+	}
+
+	public String getCodigoSincronizacion() {
+		return codigoSincronizacion;
+	}
+
+	public void setCodigoSincronizacion(String codigoSincronizacion) {
+		this.codigoSincronizacion = codigoSincronizacion;
 	}
 
 	public Usuario getUsuario() {

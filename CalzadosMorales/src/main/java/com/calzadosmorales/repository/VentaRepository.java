@@ -11,7 +11,7 @@ import com.calzadosmorales.entity.Venta;
 public interface VentaRepository extends JpaRepository<Venta, Integer> {
 
     // ==========================================
-    // LLAMADAS A PROCEDIMIENTOS (VENDEDOR - DASHBOARD)
+    // VENDEDOR - DASHBOARD
     // ==========================================
 
     @Query(value = "CALL sp_VentasMesVendedor(:id)", nativeQuery = true)
@@ -39,7 +39,7 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     List<Object[]> getUltimosSieteClientes(@Param("id") int idVendedor);
 
     // ==========================================
-    // LLAMADAS A PROCEDIMIENTOS (ADMINISTRADOR - DASHBOARD)
+    // ADMINISTRADOR - DASHBOARD
     // ==========================================
 
     @Query(value = "CALL sp_AdminCajaHoy()", nativeQuery = true)
@@ -67,10 +67,9 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     List<Object[]> getAdminTopCincoVendedores();
     
     // ==========================================
-    // NUEVAS CONSULTAS (PANTALLAS DE TABLAS)
+    // CONSULTAS DE PANTALLAS (PUENTES DE PROCS)
     // ==========================================
 
-    // --- PARA VENDEDOR ---
     @Query(value = "CALL sp_ListarMisVentas(:id)", nativeQuery = true)
     List<Object[]> listarMisVentas(@Param("id") int idUsuario);
 
@@ -80,8 +79,6 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     @Query(value = "CALL sp_VendedorClientesPorRecuperar(:id)", nativeQuery = true)
     List<Object[]> clientesPorRecuperar(@Param("id") int idUsuario);
 
-
-    // --- PARA ADMINISTRADOR ---
     @Query(value = "CALL sp_AdminHistorialGeneralVentas()", nativeQuery = true)
     List<Object[]> adminHistorialGeneral();
 
@@ -93,4 +90,15 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
 
     @Query(value = "CALL sp_AdminAnalisisHorarioVentas()", nativeQuery = true)
     List<Object[]> adminAnalisisHorario();
+
+    // ==========================================
+    // 🌟 EXTENSIONES DE CONTROL API MÓVIL (NUEVO)
+    // ==========================================
+
+    // Valida la existencia del token UUID móvil de forma atómica para evitar duplicación por red
+    boolean existsByCodigoSincronizacion(String codigoSincronizacion);
+
+    // 🌟 CORREGIDO: Convierte la columna pura a entero (ej: "000001" -> 1) filtrando por el carril de serie (B001 o M001)
+    @Query(value = "SELECT MAX(CAST(numero AS UNSIGNED)) FROM venta WHERE serie = :serie", nativeQuery = true)
+    Integer findMaxCorrelativoBySerie(@Param("serie") String serie);
 }

@@ -13,11 +13,9 @@
 
     <style>
         .info-badge { font-size: 1rem; padding: 8px 15px; border-radius: 8px; margin-right: 15px; margin-bottom: 10px; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .badge-talla { background-color: #e9ecef; color: #495057; border: 1px solid #ced4da; }
         .badge-color { background-color: #f8f9fa; color: #333; border: 1px solid #ced4da; }
         .badge-precio { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; font-weight: bold; }
         .info-container { margin-top: 20px; padding: 15px; background-color: #fff; border-radius: 10px; min-height: 40px; }
-        .invalid-feedback { font-weight: bold; }
     </style>
 </head>
 <body>
@@ -38,30 +36,45 @@
                                 <div class="card-body">
                                     <h4 class="card-title text-primary"><i class="mdi mdi-magnify"></i> Seleccionar Producto</h4>
                                     <form th:action="@{/ventas/agregar}" method="post" id="formAgregar">
-                                        <div class="form-group">
-                                            <label class="fw-bold">Buscar Calzado:</label>
-                                            <select class="form-select select2" name="id_producto" id="selectProducto" required onchange="mostrarInfoProducto()">
+                                        
+                                        <div class="form-group mb-3">
+                                            <label class="fw-bold">Buscar Calzado (Modelo):</label>
+                                            <select class="form-select select2" name="id_producto" id="selectProducto" required onchange="cargarTallasProducto()">
                                                 <option value="" selected>-- Buscar por nombre --</option>
-                                                <option th:each="p : ${productos}" th:value="${p.id_producto}" th:text="${p.nombre}"
-                                                        th:data-talla="${p.talla.nombre}" th:data-color="${p.color.nombre}" 
-                                                        th:data-precio="${p.precio}" th:data-stock="${p.stock}"></option>
+                                                <option th:each="p : ${productos}" 
+                                                        th:value="${p.id_producto}" 
+                                                        th:text="${p.nombre}"
+                                                        th:data-color="${p.color?.nombre}" 
+                                                        th:data-precio="${p.precio}"></option>
                                             </select>
                                         </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="fw-bold">Seleccionar Talla:</label>
+                                            <select class="form-select" name="id_talla" id="selectTalla" required disabled onchange="actualizarStockTalla()">
+                                                <option value="">-- Elige un modelo primero --</option>
+                                            </select>
+                                        </div>
+
                                         <div id="infoProducto" class="info-container" style="display:none;">
-                                            <span class="info-badge badge-talla"><i class="mdi mdi-ruler"></i> Talla: <b id="lblTalla"></b></span>
                                             <span class="info-badge badge-color"><i class="mdi mdi-palette"></i> Color: <b id="lblColor"></b></span>
                                             <span class="info-badge badge-precio"><i class="mdi mdi-cash"></i> S/ <b id="lblPrecio"></b></span>
-                                            <div class="mt-3 text-muted"><i class="mdi mdi-package-variant"></i> Stock: <b id="lblStock" class="text-dark"></b></div>
+                                            <div class="mt-3 text-muted">
+                                                <i class="mdi mdi-package-variant"></i> Stock Disponible para esta talla: <b id="lblStock" class="text-dark">0</b>
+                                            </div>
                                         </div>
-                                        <div class="form-group mt-4">
+
+                                        <div class="form-group mt-4 position-relative">
                                             <label class="fw-bold">Cantidad:</label>
                                             <input type="number" name="cantidad" id="txtCantidad" class="form-control form-control-lg text-center" value="1" min="1" required>
+                                            <div class="invalid-feedback fw-bold mt-2" id="feedbackStock">⚠️ La cantidad excede el stock disponible para esta talla.</div>
                                         </div>
-                                        <button type="submit" class="btn btn-gradient-primary w-100 mt-3 btn-lg">AGREGAR</button>
+                                        <button type="submit" id="btnAgregarCarrito" class="btn btn-gradient-primary w-100 mt-3 btn-lg">AGREGAR</button>
                                     </form>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-md-7 grid-margin stretch-card">
                             <div class="card">
                                 <div class="card-body d-flex flex-column">
@@ -69,12 +82,15 @@
                                     <div class="table-responsive flex-grow-1">
                                         <table class="table table-hover">
                                             <thead>
-                                                <tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th></th></tr>
+                                                <tr><th>Producto / Variante</th><th class="text-center">Cant.</th><th class="text-end">Subtotal</th><th></th></tr>
                                             </thead>
                                             <tbody>
                                                 <tr th:if="${carrito == null or carrito.empty}"><td colspan="4" class="text-center">Carrito vacío</td></tr>
                                                 <tr th:each="item, stat : ${carrito}">
-                                                    <td th:text="${item.producto.nombre}"></td>
+                                                    <td>
+                                                        <span th:text="${item.productoTalla.producto.nombre}" class="fw-bold"></span><br>
+                                                        <small class="text-muted" th:text="'Talla: ' + ${item.productoTalla.talla.nombre} + ' | Color: ' + ${item.productoTalla.producto.color?.nombre}"></small>
+                                                    </td>
                                                     <td class="text-center" th:text="${item.cantidad}"></td>
                                                     <td class="text-end fw-bold" th:text="'S/ ' + ${item.subtotal}"></td>
                                                     <td><a th:href="@{/ventas/quitar/{index}(index=${stat.index})}" class="text-danger"><i class="mdi mdi-delete"></i></a></td>
@@ -82,7 +98,7 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="d-flex justify-content-between p-3 bg-light rounded">
+                                    <div class="d-flex justify-content-between p-3 bg-light rounded mb-3">
                                         <h4>Total:</h4><h2 class="text-success fw-bold" th:text="'S/ ' + ${total}"></h2>
                                     </div>
                                     <hr>
@@ -91,12 +107,31 @@
                                         
                                         <div class="form-group mb-3">
                                             <label class="fw-bold">Cliente:</label>
-                                            <select class="form-select select2" name="id_cliente" id="cboCliente" required>
+                                            <select class="form-select select2" name="id_cliente" id="cboCliente" required onchange="autoseleccionarComprobante()">
                                                 <option value="">-- Seleccione Cliente --</option>
                                                 <option th:each="c : ${clientes}" th:value="${c.id_cliente}" 
-                                                        th:text="${c instanceof T(com.calzadosmorales.entity.PersonaNatural) ? 'DNI: ' + c.dni + ' - ' + c.nombre : 'RUC: ' + c.ruc + ' - ' + c.razonSocial}"></option>
+                                                        th:data-tipo="${c.class.simpleName == 'PersonaNatural'} ? 'NATURAL' : 'JURIDICA'"
+                                                        th:text="${c.class.simpleName == 'PersonaNatural'} ? 'DNI: ' + ${c.dni} + ' - ' + ${c.nombre} + ' ' + ${c.apellido} : 'RUC: ' + ${c.ruc} + ' - ' + ${c.razonSocial}"></option>
                                             </select>
                                         </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="fw-bold">Tipo de Comprobante:</label>
+                                            <select class="form-select" name="tipo_comprobante" id="cboComprobante" required>
+                                                <option value="Boleta">Boleta de Venta</option>
+                                                <option value="Factura">Factura Electrónica</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group mb-4">
+                                            <label class="fw-bold">Método de Pago:</label>
+                                            <select class="form-select" name="metodo_pago" id="cboMetodoPago" required>
+                                                <option value="Efectivo">Efectivo</option>
+                                                <option value="Yape">Yape</option>
+                                                <option value="Plin">Plin</option>
+                                            </select>
+                                        </div>
+
                                         <div class="d-grid">
                                             <button type="button" onclick="confirmarVenta()" class="btn btn-success btn-lg" th:disabled="${carrito == null or carrito.empty}">
                                                 <i class="mdi mdi-content-save"></i> PROCESAR VENTA
@@ -119,17 +154,89 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script th:inline="javascript">
-        $(document).ready(function() { $('.select2').select2({ theme: 'bootstrap-5', width: '100%' }); });
+        $(document).ready(function() { 
+            $('.select2').select2({ theme: 'bootstrap-5', width: '100%' }); 
+        });
 
-        function mostrarInfoProducto() {
-            var option = document.getElementById('selectProducto').options[document.getElementById('selectProducto').selectedIndex];
-            if (option.value) {
-                document.getElementById('lblTalla').innerText = option.getAttribute('data-talla');
-                document.getElementById('lblColor').innerText = option.getAttribute('data-color');
-                document.getElementById('lblPrecio').innerText = option.getAttribute('data-precio');
-                document.getElementById('lblStock').innerText = option.getAttribute('data-stock');
+        var listaProductosJava = /*[[${productos}]]*/ [];
+
+        function cargarTallasProducto() {
+            var idProducto = $('#selectProducto').val();
+            var $selectTalla = $('#selectTalla');
+            
+            $selectTalla.empty().append('<option value="">-- Seleccione Talla --</option>');
+            
+            if (!idProducto) {
+                $selectTalla.prop('disabled', true);
+                $('#infoProducto').hide();
+                return;
+            }
+
+            var prodSeleccionado = listaProductosJava.find(p => p.id_producto == idProducto);
+            
+            if (prodSeleccionado && prodSeleccionado.tallas) {
+                prodSeleccionado.tallas.forEach(function(variant) {
+                    $selectTalla.append(
+                        $('<option>', {
+                            value: variant.talla.id_talla,
+                            text: variant.talla.nombre,
+                            'data-stock': variant.stock
+                        })
+                    );
+                });
+                
+                var optionEl = document.getElementById('selectProducto').options[document.getElementById('selectProducto').selectedIndex];
+                document.getElementById('lblColor').innerText = optionEl.getAttribute('data-color') || 'N/A';
+                document.getElementById('lblPrecio').innerText = optionEl.getAttribute('data-precio') || '0.00';
+                
+                $selectTalla.prop('disabled', false);
                 $('#infoProducto').fadeIn();
-            } else { $('#infoProducto').hide(); }
+                document.getElementById('lblStock').innerText = "Seleccione una talla";
+                $('#txtCantidad').removeClass('is-invalid');
+                $('#btnAgregarCarrito').prop('disabled', false);
+            }
+        }
+
+        function actualizarStockTalla() {
+            var optionTalla = document.getElementById('selectTalla').options[document.getElementById('selectTalla').selectedIndex];
+            var $cantidadInput = $('#txtCantidad');
+            
+            if (optionTalla.value) {
+                var stock = parseInt(optionTalla.getAttribute('data-stock'));
+                document.getElementById('lblStock').innerText = stock;
+                $cantidadInput.attr('max', stock);
+                
+                $cantidadInput.off('input').on('input', function() {
+                    var cant = parseInt($(this).val()) || 0;
+                    if (cant > stock) {
+                        $(this).addClass('is-invalid');
+                        $('#btnAgregarCarrito').prop('disabled', true);
+                    } else {
+                        $(this).removeClass('is-invalid');
+                        $('#btnAgregarCarrito').prop('disabled', false);
+                    }
+                });
+                
+                $cantidadInput.trigger('input');
+            } else {
+                document.getElementById('lblStock').innerText = "Seleccione una talla";
+                $cantidadInput.removeClass('is-invalid');
+                $('#btnAgregarCarrito').prop('disabled', false);
+            }
+        }
+
+        function autoseleccionarComprobante() {
+            var selectCliente = document.getElementById('cboCliente');
+            if(selectCliente.selectedIndex <= 0) return;
+            
+            var optionSeleccionada = selectCliente.options[selectCliente.selectedIndex];
+            var tipo = optionSeleccionada.getAttribute('data-tipo');
+            
+            if (tipo === 'JURIDICA') {
+                $('#cboComprobante').val('Factura');
+            } else if (tipo === 'NATURAL') {
+                $('#cboComprobante').val('Boleta');
+            }
         }
 
         function confirmarVenta() {
@@ -152,14 +259,12 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Opción con PDF
                     document.getElementById('inputGenerarPdf').value = "true";
                     document.getElementById('formVenta').submit();
                     finalizarFlujoVenta('Venta y PDF generados');
                 } else if (result.isDenied) {
-                    // Opción sin PDF
                     document.getElementById('inputGenerarPdf').value = "false";
-                    document.getElementById('formVenta').target = "_self"; // Cambiamos target para que no abra pestaña blanca
+                    document.getElementById('formVenta').target = "_self";
                     document.getElementById('formVenta').submit();
                     finalizarFlujoVenta('Venta registrada (Sin PDF)');
                 }

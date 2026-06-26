@@ -1,7 +1,9 @@
 package com.calzadosmorales.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = "productos")
@@ -19,8 +21,6 @@ public class Producto {
 
 	@Column(nullable = false)
 	private BigDecimal precio;
-	@Column(nullable = false)
-	private Integer stock;
 
 	@Column(nullable = false)
 	private Boolean estado;
@@ -30,16 +30,22 @@ public class Producto {
 	private Categoria categoria;
 
 	@ManyToOne
-	@JoinColumn(name = "id_talla", nullable = false)
-	private Talla talla;
-
-	@ManyToOne
 	@JoinColumn(name = "id_color")
 	private Color color;
 
 	@ManyToOne
 	@JoinColumn(name = "id_material")
 	private Material material;
+
+	// Se añade 'orphanRemoval = true' para purgar automáticamente fotos antiguas/duplicadas de la BD
+	@OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+	@JsonManagedReference(value = "producto-imagen")
+	private List<ProductoImagen> imagenes;
+
+	// 🌟 CORREGIDO: Se cambia de CascadeType.ALL a MERGE y REFRESH para evitar el error "detached entity passed to persist"
+	@OneToMany(mappedBy = "producto", cascade = {CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.EAGER)
+	@JsonManagedReference(value = "producto-talla")
+	private List<ProductoTalla> tallas;
 
 	public Producto() {
 	}
@@ -76,16 +82,12 @@ public class Producto {
 		this.precio = precio;
 	}
 
-	public Integer getStock() {
-		return stock;
-	}
-
-	public void setStock(Integer stock) {
-		this.stock = stock;
-	}
-
 	public Boolean getEstado() {
 		return estado;
+	}
+
+	public boolean isEstado() {
+		return estado != null && estado;
 	}
 
 	public void setEstado(Boolean estado) {
@@ -98,14 +100,6 @@ public class Producto {
 
 	public void setCategoria(Categoria categoria) {
 		this.categoria = categoria;
-	}
-
-	public Talla getTalla() {
-		return talla;
-	}
-
-	public void setTalla(Talla talla) {
-		this.talla = talla;
 	}
 
 	public Color getColor() {
@@ -122,5 +116,21 @@ public class Producto {
 
 	public void setMaterial(Material material) {
 		this.material = material;
+	}
+
+	public List<ProductoImagen> getImagenes() {
+		return imagenes;
+	}
+
+	public void setImagenes(List<ProductoImagen> imagenes) {
+		this.imagenes = imagenes;
+	}
+
+	public List<ProductoTalla> getTallas() {
+		return tallas;
+	}
+
+	public void setTallas(List<ProductoTalla> tallas) {
+		this.tallas = tallas;
 	}
 }

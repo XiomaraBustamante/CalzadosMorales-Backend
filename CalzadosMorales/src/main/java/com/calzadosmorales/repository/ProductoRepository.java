@@ -9,16 +9,15 @@ import org.springframework.stereotype.Repository;
 
 import com.calzadosmorales.entity.Color;
 import com.calzadosmorales.entity.Producto;
-import com.calzadosmorales.entity.Talla;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Integer> {
     
-    // Verificación de duplicados
-    boolean existsByNombreAndTallaAndColor(String nombre, Talla talla, Color color);
+    // 🔥 CORREGIDO: Ahora valida duplicados solo por Nombre y Color (quitamos la Talla única)
+    boolean existsByNombreAndColor(String nombre, Color color);
     
-    // Conteo para dashboard
-    @Query("SELECT COUNT(p) FROM Producto p WHERE p.stock <= 3 AND p.estado = true")
+    // 🔥 CORREGIDO: Consulta adaptada para sumar el stock desde la tabla intermedia producto_talla
+    @Query("SELECT COUNT(p) FROM Producto p JOIN p.tallas t WHERE p.estado = true GROUP BY p.id_producto HAVING SUM(t.stock) <= 3")
     Long contarProductosStockCritico();
     
     // CONSULTA COMPARTIDA (STOCK CON FILTROS)

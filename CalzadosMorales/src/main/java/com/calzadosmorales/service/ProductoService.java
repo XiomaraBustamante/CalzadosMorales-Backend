@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.calzadosmorales.entity.*;
 import com.calzadosmorales.repository.*;
@@ -17,21 +18,43 @@ public class ProductoService {
     @Autowired private TallaRepository tallaRepo;
     @Autowired private ColorRepository colorRepo;
     @Autowired private MaterialRepository materialRepo;
+    @Autowired private ProductoTallaRepository productoTallaRepo; // 🌟 NUEVO: Inyectado para persistir curvas de stock de forma directa
 
     public List<Producto> listarProductos() {
         return productoRepo.findAll();
     }
 
+    @Transactional
     public void guardarProducto(Producto p) {
-        productoRepo.save(p);
+        // 1. Guardamos primero el producto base para asegurar la existencia del ID de MySQL
+        List<ProductoTalla> tallasTemporales = p.getTallas();
+        p.setTallas(new ArrayList<>()); // Desacoplamos temporalmente de la cascada
+        
+        if (p.getImagenes() != null) {
+            p.getImagenes().forEach(img -> img.setProducto(p));
+        }
+        
+        // Guardado/Actualización de la entidad maestra
+        Producto productoPersistido = productoRepo.save(p);
+
+        // 2. Persistencia manual y controlada de la curva de tallas/stocks
+        if (tallasTemporales != null) {
+            for (ProductoTalla pt : tallasTemporales) {
+                pt.setProducto(productoPersistido);
+                // Aseguramos que la llave compuesta tome el ID generado en el paso anterior
+                pt.getId().setId_producto(productoPersistido.getId_producto());
+                productoTallaRepo.save(pt); // Sincronización forzada directa en la BD
+                productoPersistido.getTallas().add(pt);
+            }
+        }
     }
 
     public Producto buscarProducto(Integer id) {
         return productoRepo.findById(id).orElse(null);
     }
 
-    public boolean existeProductoIgual(String nombre, Talla talla, Color color) {
-        return productoRepo.existsByNombreAndTallaAndColor(nombre, talla, color);
+    public boolean existeProductoIgual(String nombre, Color color) {
+        return productoRepo.existsByNombreAndColor(nombre, color);
     }
 
     public List<Categoria> listarCategorias() {
@@ -50,7 +73,6 @@ public class ProductoService {
         return materialRepo.findByEstado(true);
     }
     
-    // --- CONSULTA DE STOCK FILTRADA 
     public List<Producto> consultarStockConFiltros(int idCat, String talla) {
         List<Object[]> resultados = productoRepo.consultaStockFiltros(idCat, talla);
         List<Producto> listaCorregida = new ArrayList<>();
@@ -58,11 +80,9 @@ public class ProductoService {
         try {
             for (Object[] fila : resultados) {
                 Producto p = new Producto();
-             
 
                 if (fila[0] != null) p.setId_producto(((Number) fila[0]).intValue());
                 if (fila[1] != null) p.setNombre(fila[1].toString());
-                
 
                 if (fila[5] != null) {
                     p.setPrecio(new BigDecimal(fila[5].toString()));
@@ -70,14 +90,20 @@ public class ProductoService {
                     p.setPrecio(BigDecimal.ZERO);
                 }
                 
-                if (fila[6] != null) p.setStock(((Number) fila[6]).intValue());
+                p.setTallas(new ArrayList<>());
+                if (fila[6] != null) {
+                    ProductoTalla pt = new ProductoTalla();
+                    pt.setStock(((Number) fila[6]).intValue());
+                    
+                    Talla tObj = new Talla();
+                    if (fila[3] != null) tObj.setNombre(fila[3].toString());
+                    pt.setTalla(tObj);
+                    
+                    p.getTallas().add(pt);
+                }
                 
-                // RELACIONES (Evitar NullPointerException en el HTML)
                 p.setCategoria(new Categoria()); 
                 if (fila[2] != null) p.getCategoria().setNombre(fila[2].toString());
-
-                p.setTalla(new Talla());
-                if (fila[3] != null) p.getTalla().setNombre(fila[3].toString());
 
                 p.setColor(new Color());
                 if (fila[4] != null) p.getColor().setNombre(fila[4].toString());
@@ -95,4 +121,7 @@ public class ProductoService {
     public List<Object[]> obtenerProductosEstancados() {
         return productoRepo.productosEstancados();
     }
+    
+
+    
 }

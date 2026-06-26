@@ -15,9 +15,13 @@ public class DetalleVenta {
 	@JoinColumn(name = "id_venta", nullable = false)
 	private Venta venta;
 
+	// 🔥 MODIFICADO: Ahora apunta a la variante de la combinación de producto y talla
 	@ManyToOne
-	@JoinColumn(name = "id_producto", nullable = false)
-	private Producto producto;
+	@JoinColumns({
+		@JoinColumn(name = "id_producto", referencedColumnName = "id_producto", nullable = false),
+		@JoinColumn(name = "id_talla", referencedColumnName = "id_talla", nullable = false)
+	})
+	private ProductoTalla productoTalla;
 
 	@Column(nullable = false)
 	private Integer cantidad;
@@ -47,12 +51,13 @@ public class DetalleVenta {
 		this.venta = venta;
 	}
 
-	public Producto getProducto() {
-		return producto;
+	// 🔥 NUEVOS GETTERS Y SETTERS ACTUALIZADOS
+	public ProductoTalla getProductoTalla() {
+		return productoTalla;
 	}
 
-	public void setProducto(Producto producto) {
-		this.producto = producto;
+	public void setProductoTalla(ProductoTalla productoTalla) {
+		this.productoTalla = productoTalla;
 	}
 
 	public Integer getCantidad() {

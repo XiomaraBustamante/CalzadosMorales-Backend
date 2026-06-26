@@ -7,10 +7,11 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.format.DateTimeFormatter; // IMPORTANTE
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,7 +19,26 @@ import java.util.stream.Collectors;
 @Service
 public class PdfService {
 
+    // MÉTODO 1: Mantiene la descarga o visualización vía navegador web (Inalterado)
     public void exportarVentaPDF(HttpServletResponse response, Venta venta) {
+        try {
+            byte[] pdfBytes = obtenerVentaPDFBytes(venta);
+            if (pdfBytes != null && pdfBytes.length > 0) {
+                response.setContentType("application/pdf");
+                response.setHeader("Content-Disposition", "inline; filename=comprobante_" + venta.getNumero() + ".pdf");
+                response.setContentLength(pdfBytes.length);
+                response.getOutputStream().write(pdfBytes);
+                response.getOutputStream().flush();
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR CRÍTICO AL RENDERIZAR STREAM HTTP: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // 🌟 NUEVO MÉTODO: Genera el archivo en crudo (byte[]) aislado de contextos HTTP. 
+    // Reutilizado de forma segura tanto por controladores Web/REST como por EmailService.
+    public byte[] obtenerVentaPDFBytes(Venta venta) {
         try {
             // 1. CARGAR DISEÑO
             File file = ResourceUtils.getFile("classpath:reports/comprobante.jrxml");
@@ -28,23 +48,21 @@ public class PdfService {
             Map<String, Object> parameters = new HashMap<>();
             
             String nombreCliente = "";
-            String docCliente = ""; // Aquí solo mandaremos el número
+            String docCliente = ""; 
             
             if (venta.getCliente() instanceof PersonaNatural) {
                 PersonaNatural pn = (PersonaNatural) venta.getCliente();
                 nombreCliente = pn.getNombre() + " " + pn.getApellido();
-                docCliente = pn.getDni(); // Solo el número
+                docCliente = pn.getDni(); 
             } else if (venta.getCliente() instanceof PersonaJuridica) {
                 PersonaJuridica pj = (PersonaJuridica) venta.getCliente();
                 nombreCliente = pj.getRazonSocial();
-                docCliente = pj.getRuc(); // Solo el número
+                docCliente = pj.getRuc(); 
             }
 
-            // Formatear Fecha (Bonita: 23/02/2026 14:07)
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
             String fechaFormateada = venta.getFecha() != null ? venta.getFecha().format(formatter) : "";
 
-            // Datos de Cabecera
             parameters.put("p_cliente", nombreCliente);
             parameters.put("p_documento", docCliente);
             parameters.put("p_vendedor", venta.getUsuario() != null ? venta.getUsuario().getNombre() : "S/V"); 
@@ -63,11 +81,15 @@ public class PdfService {
             parameters.put("igv", igv);
             parameters.put("total", totalVenta);
 
-            // 4. DATOS DE LA TABLA (DETALLE)
+            // 4. MAPEADO DE DETALLES
             var detalleDS = venta.getDetalles().stream().map(d -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("cantidad", d.getCantidad()); 
-                map.put("descripcion", d.getProducto().getNombre());
+                
+                String descripcionPremium = d.getProductoTalla().getProducto().getNombre() 
+                        + " (Talla: " + d.getProductoTalla().getTalla().getNombre() + ")";
+                
+                map.put("descripcion", descripcionPremium);
                 map.put("precio", d.getPrecio());
                 map.put("subtotal", d.getSubtotal());
                 return map;
@@ -75,17 +97,18 @@ public class PdfService {
 
             parameters.put("ItemDataSource", new JRBeanCollectionDataSource(detalleDS));
 
-            // 5. GENERAR PDF
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JREmptyDataSource());
+            // 5. COMPILACIÓN DE DATA EN MEMORIA
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JRBeanCollectionDataSource(detalleDS));
             
-            response.setContentType("application/pdf");
-            response.setHeader("Content-Disposition", "inline; filename=boleta_" + venta.getNumero() + ".pdf");
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, byteArrayOutputStream);
             
-            JasperExportManager.exportReportToPdfStream(jasperPrint, response.getOutputStream());
+            return byteArrayOutputStream.toByteArray();
 
         } catch (Exception e) {
-            System.err.println("ERROR CRÍTICO AL GENERAR PDF: " + e.getMessage());
+            System.err.println("ERROR CRÍTICO AL EXPORTAR BINARIO PDF DESDE SERVICE: " + e.getMessage());
             e.printStackTrace();
+            return null;
         }
     }
 }

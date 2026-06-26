@@ -9,7 +9,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.password.PasswordEncoder; // Cambiado
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -20,7 +20,7 @@ public class SecurityConfig {
     private UsuarioService usuarioService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // Cambiado a PasswordEncoder genérico
+    private PasswordEncoder passwordEncoder;
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -35,14 +35,17 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable());
 
         http
-            .authenticationProvider(authenticationProvider()) 
+            .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
+                // ✅ LÍNEA NUEVA: rutas de la app móvil — sin login
+                .requestMatchers("/api/**").permitAll()
+                // Rutas del sistema web — sin cambios
                 .requestMatchers("/assets/**", "/login", "/css/**", "/js/**", "/vendors/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/index", true) 
+                .defaultSuccessUrl("/index", true)
                 .failureUrl("/login?error=true")
                 .permitAll()
             )
@@ -53,7 +56,7 @@ public class SecurityConfig {
 
         return http.build();
     }
-    
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();

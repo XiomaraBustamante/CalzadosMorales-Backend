@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication; // IMPORTANTE
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +17,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.calzadosmorales.entity.Cliente;
 import com.calzadosmorales.entity.PersonaJuridica;
 import com.calzadosmorales.entity.DetalleVenta;
-import com.calzadosmorales.entity.Producto;
+import com.calzadosmorales.entity.ProductoTalla;
+import com.calzadosmorales.entity.ProductoTallaKey;
 import com.calzadosmorales.entity.Usuario;
 import com.calzadosmorales.entity.Venta;
-import com.calzadosmorales.repository.UsuarioRepository; // IMPORTANTE
+import com.calzadosmorales.repository.UsuarioRepository;
+import com.calzadosmorales.repository.VentaRepository;
+import com.calzadosmorales.repository.ProductoTallaRepository;
 import com.calzadosmorales.service.ClienteService;
 import com.calzadosmorales.service.ExcelService;
 import com.calzadosmorales.service.PdfService;
@@ -29,6 +32,10 @@ import com.calzadosmorales.service.VentaService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/ventas")
@@ -48,6 +55,12 @@ public class VentaController {
 
     @Autowired
     private UsuarioRepository usuarioRepo; 
+    
+    @Autowired
+    private VentaRepository ventaRepo;
+    
+    @Autowired
+    private ProductoTallaRepository productoTallaRepo;
     
     @Autowired
     private ExcelService excelService; 
@@ -77,6 +90,7 @@ public class VentaController {
     @PostMapping("/agregar")
     public String agregarProducto(
             @RequestParam("id_producto") Integer idProducto,
+            @RequestParam("id_talla") Integer idTalla, 
             @RequestParam("cantidad") Integer cantidad,
             HttpSession session,
             RedirectAttributes flash) {
@@ -86,9 +100,16 @@ public class VentaController {
             return "redirect:/ventas/nueva";
         }
 
-        Producto producto = productoService.buscarProducto(idProducto);
-        if (producto.getStock() < cantidad) {
-            flash.addFlashAttribute("error", "Stock insuficiente.");
+        ProductoTallaKey key = new ProductoTallaKey(idProducto, idTalla);
+        ProductoTalla pt = productoTallaRepo.findById(key).orElse(null);
+
+        if (pt == null) {
+            flash.addFlashAttribute("error", "La variante de talla seleccionada no existe.");
+            return "redirect:/ventas/nueva";
+        }
+
+        if (pt.getStock() < cantidad) {
+            flash.addFlashAttribute("error", "Stock insuficiente para la talla seleccionada. Disponible: " + pt.getStock());
             return "redirect:/ventas/nueva";
         }
 
@@ -97,9 +118,16 @@ public class VentaController {
 
         boolean existe = false;
         for (DetalleVenta det : carrito) {
-            if (det.getProducto().getId_producto().equals(idProducto)) {
+            if (det.getProductoTalla().getId().getId_producto().equals(idProducto) && 
+                det.getProductoTalla().getId().getId_talla().equals(idTalla)) {
+                
+                if ((det.getCantidad() + cantidad) > pt.getStock()) {
+                    flash.addFlashAttribute("error", "No puede agregar más del stock disponible total.");
+                    return "redirect:/ventas/nueva";
+                }
+                
                 det.setCantidad(det.getCantidad() + cantidad);
-                det.setSubtotal(producto.getPrecio().multiply(new BigDecimal(det.getCantidad())));
+                det.setSubtotal(pt.getProducto().getPrecio().multiply(new BigDecimal(det.getCantidad())));
                 existe = true;
                 break;
             }
@@ -108,18 +136,18 @@ public class VentaController {
         if (!existe) {
             DetalleVenta detalle = new DetalleVenta();
             detalle.setCantidad(cantidad);
-            detalle.setProducto(producto);
-            detalle.setPrecio(producto.getPrecio());
-            detalle.setSubtotal(producto.getPrecio().multiply(new BigDecimal(cantidad)));
+            detalle.setProductoTalla(pt); 
+            detalle.setPrecio(pt.getProducto().getPrecio());
+            detalle.setSubtotal(pt.getProducto().getPrecio().multiply(new BigDecimal(cantidad)));
             carrito.add(detalle);
         }
         
         session.setAttribute("carrito", carrito);
-        flash.addFlashAttribute("success", "Producto Agregado");
+        flash.addFlashAttribute("success", "Producto Agregado con Talla");
         return "redirect:/ventas/nueva";
     }
 
-    //LIMPIAR
+    // QUITAR Y LIMPIAR
     @GetMapping("/quitar/{index}")
     public String quitarDelCarrito(@PathVariable("index") int index, HttpSession session) {
         List<DetalleVenta> carrito = (List<DetalleVenta>) session.getAttribute("carrito");
@@ -133,11 +161,13 @@ public class VentaController {
         return "redirect:/ventas/nueva";
     }
 
-
+    // 🔥 REFRACTORIZADO: GUARDAR VENTA DESDE PORTAL WEB (Aislado de la numeración móvil)
     @PostMapping("/guardar")
     public String guardarVenta(
             @RequestParam("id_cliente") Integer idCliente, 
-            @RequestParam(name = "generarPdf", defaultValue = "true") boolean generarPdf, // <-- NUEVO PARÁMETRO
+            @RequestParam("metodo_pago") String metodoPago, 
+            @RequestParam("tipo_comprobante") String tipoComprobante, 
+            @RequestParam(name = "generarPdf", defaultValue = "true") boolean generarPdf, 
             HttpSession session, 
             RedirectAttributes flash,
             Authentication auth) { 
@@ -155,11 +185,14 @@ public class VentaController {
             Cliente clienteReal = clienteService.buscarPorId(idCliente);
             venta.setCliente(clienteReal);
 
-            if (clienteReal instanceof PersonaJuridica) {
-                venta.setTipoComprobante("Factura");
+            venta.setTipoComprobante(tipoComprobante);
+            venta.setMetodoPago(metodoPago);
+            
+            venta.setOrigen("WEB");
+
+            if ("Factura".equalsIgnoreCase(tipoComprobante)) {
                 venta.setSerie("F001");
             } else {
-                venta.setTipoComprobante("Boleta");
                 venta.setSerie("B001");
             }
 
@@ -176,58 +209,85 @@ public class VentaController {
                 venta.agregarDetalle(d);
             }
             
-            ventaService.registrarVenta(venta);
-            venta.setNumero(String.format("%06d", venta.getId_venta()));
+            Integer ultimoCorrelativo = ventaRepo.findMaxCorrelativoBySerie(venta.getSerie());
+            int siguienteCorrelativo = (ultimoCorrelativo != null) ? ultimoCorrelativo + 1 : 1;
+            
+            venta.setNumero(String.format("%06d", siguienteCorrelativo));
+            
             ventaService.registrarVenta(venta); 
             
             session.removeAttribute("carrito");
             
-            // --- LÓGICA DE DECISIÓN ---
             if (generarPdf) {
                 return "redirect:/ventas/verPDF/" + venta.getId_venta();
-            } else {
-                flash.addFlashAttribute("success", "Venta registrada exitosamente (Sin comprobante).");
-                // Si es vendedor va a sus ventas, si no a nueva venta
-                return "redirect:/ventas/nueva"; 
             }
-            
+
+            return "redirect:/ventas/nueva";
+
         } catch (Exception e) {
+            e.printStackTrace(); 
             flash.addFlashAttribute("error", "Error al procesar la venta: " + e.getMessage());
             return "redirect:/ventas/nueva";
         }
     }
-    
-    // GENERAR PDF
 
+    // 🌟 CORREGIDO: Inyección de @ResponseBody y cabeceras PDF para evitar el Whitelabel 404
     @GetMapping("/verPDF/{id}")
+    @ResponseBody
     public void verPDF(@PathVariable("id") Integer idVenta, HttpServletResponse response) {
         try {
             Venta venta = ventaService.buscarPorId(idVenta); 
             if (venta != null) {
+                response.setContentType("application/pdf");
+                response.setHeader("Content-Disposition", "inline; filename=Comprobante_" + venta.getNumero() + ".pdf");
+                
                 pdfService.exportarVentaPDF(response, venta);
             }
         } catch (Exception e) {
             System.err.println("Error al visualizar el PDF: " + e.getMessage());
         }
     }
-    
 
-    // NUEVAS RUTAS: CONSULTAS Y REPORTES
- 
+    @GetMapping("/listar")
+    @ResponseBody 
+    public ResponseEntity<?> listarVentas() {
+        try {
+            List<Venta> listaCompleta = ventaRepo.findAll(); 
+            List<Map<String, Object>> respuestaLimpia = new ArrayList<>();
 
- // --- PARA EL VENDEDOR ---
+            for (Venta v : listaCompleta) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id_venta", v.getId_venta());
+                
+                String clienteNombre = "Cliente General";
+                if (v.getCliente() != null) {
+                    clienteNombre = "Cliente Código: " + v.getCliente().getId_cliente();
+                }
+                
+                map.put("cliente_nombre", clienteNombre);
+                map.put("monto_total", v.getTotal());
+                map.put("fecha_registro", v.getFecha() != null ? v.getFecha().toString().replace("T", " ") : "");
+                
+                map.put("numero_boleta", v.getSerie() != null && v.getNumero() != null ? v.getSerie() + "-" + v.getNumero() : "BOL-000");
+                respuestaLimpia.add(map);
+            }
+
+            return ResponseEntity.ok(respuestaLimpia);
+        } catch (Exception e) {
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMap);
+        }
+    }
 
     @GetMapping("/mis-ventas")
     @PreAuthorize("hasRole('ROLE_2')")
     public String verMisVentas(Authentication auth, Model model) {
         String username = auth.getName();
         Usuario usuarioLogueado = usuarioRepo.findByUsuario(username);
-        
         if (usuarioLogueado == null) return "redirect:/login";
-
         model.addAttribute("listaVentas", ventaService.listarMisVentas(usuarioLogueado.getId_usuario()));
         model.addAttribute("totalHoy", ventaService.totalVendidoHoyVendedor(usuarioLogueado.getId_usuario()));
-        
         return "mis_ventas"; 
     }
 
@@ -236,20 +296,15 @@ public class VentaController {
     public String verClientesPorRecuperar(Authentication auth, Model model) {
         String username = auth.getName();
         Usuario usuarioLogueado = usuarioRepo.findByUsuario(username);
-        
         if (usuarioLogueado == null) return "redirect:/login";
-
         model.addAttribute("listaClientes", ventaService.clientesPorRecuperar(usuarioLogueado.getId_usuario()));
-        
         return "recuperar_clientes"; 
     }
-    // --- PARA EL ADMINISTRADOR ---
 
     @GetMapping("/historial-general")
     @PreAuthorize("hasRole('ROLE_1')") 
     public String historialGeneral(Model model) {
         model.addAttribute("listaHistorial", ventaService.obtenerHistorialGeneralAdmin());
-        
         return "historial_general"; 
     }
 
@@ -259,25 +314,17 @@ public class VentaController {
              @RequestParam(name = "inicio", required = false) String inicio,
              @RequestParam(name = "fin", required = false) String fin,
              Model model) {
-        
-        // Verificamos si se han enviado fechas (el usuario presionó el botón)
         if (inicio != null && !inicio.isEmpty() && fin != null && !fin.isEmpty()) {
             model.addAttribute("listaVentas", ventaService.obtenerReporteFechas(inicio, fin));
             model.addAttribute("totalSumatoria", ventaService.obtenerSumatoriaRango(inicio, fin));
-            
-            // Mantener las fechas en los inputs para que el usuario vea qué consultó
             model.addAttribute("fechaInicio", inicio);
             model.addAttribute("fechaFin", fin);
-            
-            // 2. Agregamos una bandera para indicar que se realizó una búsqueda
             model.addAttribute("busquedaRealizada", true);
         } else {
-            // 3. Primera vez que entra: lista nula o vacía y bandera en false
             model.addAttribute("listaVentas", null); 
             model.addAttribute("totalSumatoria", 0.0);
             model.addAttribute("busquedaRealizada", false);
         }
-        
         return "reporte_fechas"; 
     }
     
@@ -288,8 +335,6 @@ public class VentaController {
         return "analisis_horario"; 
     }
     
-    
-    
     @GetMapping("/exportar-excel")
     @PreAuthorize("hasRole('ROLE_1')")
     public void exportarExcel(HttpServletResponse response) throws IOException {
@@ -297,7 +342,6 @@ public class VentaController {
         String headerKey = "Content-Disposition";
         String headerValue = "attachment; filename=Reporte_Ventas_CalzadosMorales.xlsx";
         response.setHeader(headerKey, headerValue);
-
         List<Object[]> listaHistorial = ventaService.obtenerHistorialGeneralAdmin();
         excelService.exportarVentasExcel(response, listaHistorial);
     }
