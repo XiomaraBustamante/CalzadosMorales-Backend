@@ -4,6 +4,7 @@ import com.calzadosmorales.entity.*;
 import jakarta.servlet.http.HttpServletResponse;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader; // 🌟 IMPORTANTE: Añadida la importación para cargar objetos precompilados
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -37,18 +38,18 @@ public class PdfService {
 
     public byte[] obtenerVentaPDFBytes(Venta venta) {
         try {
-          
+            // 🛡️ Forzar modo headless para que el motor gráfico de Jasper funcione en Linux sin entorno visual
             System.setProperty("java.awt.headless", "true");
 
-       
-            InputStream inputStream = getClass().getResourceAsStream("/reports/comprobante.jrxml");
+            // 🚀 SOLUCIÓN DEFINITIVA: Cargamos el archivo binario (.jasper) en lugar del fuente (.jrxml)
+            InputStream inputStream = getClass().getResourceAsStream("/reports/comprobante.jasper");
             
             if (inputStream == null) {
-                throw new FileNotFoundException("Error: No se encontró el archivo 'comprobante.jrxml' dentro de resources/reports/");
+                throw new FileNotFoundException("Error: No se encontró el archivo precompilado 'comprobante.jasper' dentro de resources/reports/");
             }
 
-         
-            JasperReport jasperReport = JasperCompileManager.compileReport(inputStream);
+            // Deserializamos el objeto del reporte directamente desde el stream sin compilar nada
+            JasperReport jasperReport = (JasperReport) JRLoader.loadObject(inputStream);
 
             Map<String, Object> parameters = new HashMap<>();
             String nombreCliente = "";
