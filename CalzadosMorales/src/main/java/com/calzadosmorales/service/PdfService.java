@@ -5,10 +5,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
@@ -35,16 +35,22 @@ public class PdfService {
         }
     }
 
-    
     public byte[] obtenerVentaPDFBytes(Venta venta) {
         try {
-            
-            File file = ResourceUtils.getFile("classpath:reports/comprobante.jrxml");
-            JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+          
+            System.setProperty("java.awt.headless", "true");
 
+       
+            InputStream inputStream = getClass().getResourceAsStream("/reports/comprobante.jrxml");
             
+            if (inputStream == null) {
+                throw new FileNotFoundException("Error: No se encontró el archivo 'comprobante.jrxml' dentro de resources/reports/");
+            }
+
+         
+            JasperReport jasperReport = JasperCompileManager.compileReport(inputStream);
+
             Map<String, Object> parameters = new HashMap<>();
-            
             String nombreCliente = "";
             String docCliente = ""; 
             
@@ -66,11 +72,9 @@ public class PdfService {
             parameters.put("p_vendedor", venta.getUsuario() != null ? venta.getUsuario().getNombre() : "S/V"); 
             parameters.put("p_fecha", fechaFormateada);
             parameters.put("p_titulo", venta.getTipoComprobante() != null ? venta.getTipoComprobante() : "COMPROBANTE");
-            
             parameters.put("p_serie", venta.getSerie() != null ? venta.getSerie() : "001");
             parameters.put("p_numero", venta.getNumero() != null ? venta.getNumero() : "00000000");
 
-        
             BigDecimal totalVenta = venta.getTotal() != null ? venta.getTotal() : BigDecimal.ZERO;
             BigDecimal gravada = totalVenta.divide(new BigDecimal("1.18"), 2, RoundingMode.HALF_UP);
             BigDecimal igv = totalVenta.subtract(gravada);
@@ -79,7 +83,6 @@ public class PdfService {
             parameters.put("igv", igv);
             parameters.put("total", totalVenta);
 
-           
             var detalleDS = venta.getDetalles().stream().map(d -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("cantidad", d.getCantidad()); 
@@ -95,7 +98,6 @@ public class PdfService {
 
             parameters.put("ItemDataSource", new JRBeanCollectionDataSource(detalleDS));
 
-         
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JRBeanCollectionDataSource(detalleDS));
             
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
