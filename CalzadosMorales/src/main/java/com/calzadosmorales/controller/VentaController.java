@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional; // 🌟 IMPORTANTE: Añadida la importación para transacciones
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -162,7 +163,7 @@ public class VentaController {
         return "redirect:/ventas/nueva";
     }
 
-  
+
     @PostMapping("/guardar")
     public String guardarVenta(
             @RequestParam("id_cliente") Integer idCliente, 
@@ -234,6 +235,7 @@ public class VentaController {
 
     @GetMapping("/verPDF/{id}")
     @ResponseBody
+    @Transactional(readOnly = true) // 🔥 SOLUCIÓN: Mantiene activa la sesión de persistencia para mapear las listas Lazy en la nube
     public void verPDF(@PathVariable("id") Integer idVenta, HttpServletResponse response) {
         try {
             Venta venta = ventaService.buscarPorId(idVenta); 
