@@ -23,7 +23,7 @@
             justify-content: center;
         }
 
-        /* Alineación y diseño del cuadrito de Stock (image_006bc0.png) */
+        /*剧lineación y diseño del cuadrito de Stock */
         .stock-box {
             display: inline-block;
             min-width: 40px;
@@ -36,7 +36,7 @@
             background-color: white;
         }
 
-        /* Centrado vertical de celdas para que todo se vea parejo */
+        /* Centrado vertical de celdas */
         .table td { vertical-align: middle !important; }
     </style>
 </head>
@@ -139,19 +139,20 @@
                                                 <tr th:each="p : ${listaResultados}">
                                                     <td th:text="${p.id_producto}"></td>
                                                     <td class="font-weight-bold text-dark" th:text="${p.nombre}"></td>
-                                                    <td th:text="${p.categoria.nombre}"></td>
-                                                    <td th:text="${p.talla.nombre}"></td>
-                                                    <td th:text="${p.color.nombre}"></td>
+                                                    <td th:text="${p.categoria != null ? p.categoria.nombre : 'S/C'}"></td>
+                                                    
+                                                    <td th:text="${!#lists.isEmpty(p.tallas) ? p.tallas[0].talla.nombre : 'S/T'}"></td>
+                                                    <td th:text="${p.color != null ? p.color.nombre : 'S/C'}"></td>
                                                     <td class="font-weight-bold" th:text="'S/ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 2, 'COMMA')}"></td>
                                                     
                                                     <td class="text-center">
-                                                        <div class="stock-box" th:text="${p.stock}"></div>
+                                                        <div class="stock-box" th:text="${!#lists.isEmpty(p.tallas) ? p.tallas[0].stock : 0}"></div>
                                                     </td>
 
                                                     <td>
-                                                        <span th:if="${p.stock <= 0}" class="badge badge-danger">AGOTADO</span>
-                                                        <span th:if="${p.stock > 0 and p.stock <= 5}" class="badge badge-warning text-dark">BAJO STOCK</span>
-                                                        <span th:if="${p.stock > 5}" class="badge badge-success">DISPONIBLE</span>
+                                                        <span th:if="${#lists.isEmpty(p.tallas) or p.tallas[0].stock <= 0}" class="badge badge-danger">AGOTADO</span>
+                                                        <span th:if="${!#lists.isEmpty(p.tallas) and p.tallas[0].stock > 0 and p.tallas[0].stock <= 5}" class="badge badge-warning text-dark">BAJO STOCK</span>
+                                                        <span th:if="${!#lists.isEmpty(p.tallas) and p.tallas[0].stock > 5}" class="badge badge-success">DISPONIBLE</span>
                                                     </td>
                                                 </tr>
 
