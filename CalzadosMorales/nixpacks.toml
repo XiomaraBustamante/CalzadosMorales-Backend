@@ -1,0 +1,4 @@
+
+java = {}
+
+aptPkgs = ["fontconfig", "ttf-dejavu"]
