@@ -1,21 +1,15 @@
 package com.calzadosmorales.service;
 
 import com.calzadosmorales.entity.*;
-import jakarta.servlet.http.HttpServletResponse;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.util.JRLoader; // 🌟 IMPORTANTE: Añadida la importación para cargar objetos precompilados
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.*;
 import org.springframework.stereotype.Service;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class PdfService {
@@ -38,76 +32,102 @@ public class PdfService {
 
     public byte[] obtenerVentaPDFBytes(Venta venta) {
         try {
-            // 🛡️ Forzar modo headless para que el motor gráfico de Jasper funcione en Linux sin entorno visual
-            System.setProperty("java.awt.headless", "true");
-
-            // 🚀 SOLUCIÓN DEFINITIVA: Cargamos el archivo binario (.jasper) en lugar del fuente (.jrxml)
-            InputStream inputStream = getClass().getResourceAsStream("/reports/comprobante.jasper");
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             
-            if (inputStream == null) {
-                throw new FileNotFoundException("Error: No se encontró el archivo precompilado 'comprobante.jasper' dentro de resources/reports/");
-            }
-
-            // Deserializamos el objeto del reporte directamente desde el stream sin compilar nada
-            JasperReport jasperReport = (JasperReport) JRLoader.loadObject(inputStream);
-
-            Map<String, Object> parameters = new HashMap<>();
-            String nombreCliente = "";
-            String docCliente = ""; 
             
-            if (venta.getCliente() instanceof PersonaNatural) {
-                PersonaNatural pn = (PersonaNatural) venta.getCliente();
-                nombreCliente = pn.getNombre() + " " + pn.getApellido();
-                docCliente = pn.getDni(); 
-            } else if (venta.getCliente() instanceof PersonaJuridica) {
-                PersonaJuridica pj = (PersonaJuridica) venta.getCliente();
-                nombreCliente = pj.getRazonSocial();
-                docCliente = pj.getRuc(); 
+            Document document = new Document(PageSize.A4, 36, 36, 36, 36);
+            PdfWriter.getInstance(document, byteArrayOutputStream);
+            
+            document.open();
+
+            
+            Font fontEmpresa = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, Paragraph.ALIGN_CENTER);
+            Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14);
+            Font fontBold = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+            Font fontNormal = FontFactory.getFont(FontFactory.HELVETICA, 10);
+
+           
+            Paragraph pEmpresa = new Paragraph("CALZADOS MORALES", fontEmpresa);
+            pEmpresa.setAlignment(Element.ALIGN_CENTER);
+            document.add(pEmpresa);
+
+            String tipoComp = venta.getTipoComprobante() != null ? venta.getTipoComprobante().toUpperCase() : "COMPROBANTE";
+            String nroComp = (venta.getSerie() != null ? venta.getSerie() : "001") + "-" + (venta.getNumero() != null ? venta.getNumero() : "00000000");
+            Paragraph pTitulo = new Paragraph(tipoComp + " NRO: " + nroComp, fontTitulo);
+            pTitulo.setAlignment(Element.ALIGN_CENTER);
+            document.add(pTitulo);
+            
+            document.add(new Paragraph("----------------------------------------------------------------------------------------------------------------------------------", fontNormal));
+
+            
+            String nombreCliente = "Cliente General";
+            String docCliente = "S/D";
+            
+            if (venta.getCliente() != null) {
+                if (venta.getCliente() instanceof PersonaNatural) {
+                    PersonaNatural pn = (PersonaNatural) venta.getCliente();
+                    nombreCliente = pn.getNombre() + " " + pn.getApellido();
+                    docCliente = pn.getDni();
+                } else if (venta.getCliente() instanceof PersonaJuridica) {
+                    PersonaJuridica pj = (PersonaJuridica) venta.getCliente();
+                    nombreCliente = pj.getRazonSocial();
+                    docCliente = pj.getRuc();
+                }
             }
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
             String fechaFormateada = venta.getFecha() != null ? venta.getFecha().format(formatter) : "";
 
-            parameters.put("p_cliente", nombreCliente);
-            parameters.put("p_documento", docCliente);
-            parameters.put("p_vendedor", venta.getUsuario() != null ? venta.getUsuario().getNombre() : "S/V"); 
-            parameters.put("p_fecha", fechaFormateada);
-            parameters.put("p_titulo", venta.getTipoComprobante() != null ? venta.getTipoComprobante() : "COMPROBANTE");
-            parameters.put("p_serie", venta.getSerie() != null ? venta.getSerie() : "001");
-            parameters.put("p_numero", venta.getNumero() != null ? venta.getNumero() : "00000000");
+            document.add(new Paragraph("Cliente: " + nombreCliente, fontNormal));
+            document.add(new Paragraph("Documento (DNI/RUC): " + docCliente, fontNormal));
+            document.add(new Paragraph("Fecha de Emisión: " + fechaFormateada, fontNormal));
+            document.add(new Paragraph("Vendedor: " + (venta.getUsuario() != null ? venta.getUsuario().getNombre() : "S/V"), fontNormal));
+            document.add(new Paragraph("Método de Pago: " + (venta.getMetodoPago() != null ? venta.getMetodoPago() : "Efectivo"), fontNormal));
+            
+            document.add(new Paragraph("\n"));
 
+           
+            PdfPTable table = new PdfPTable(4);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{10f, 55f, 15f, 20f}); 
+
+           
+            table.addCell(new PdfPCell(new Phrase("Cant.", fontBold)));
+            table.addCell(new PdfPCell(new Phrase("Descripción del Calzado", fontBold)));
+            table.addCell(new PdfPCell(new Phrase("P. Unit", fontBold)));
+            table.addCell(new PdfPCell(new Phrase("Subtotal", fontBold)));
+
+            
+            if (venta.getDetalles() != null) {
+                for (DetalleVenta d : venta.getDetalles()) {
+                    table.addCell(new PdfPCell(new Phrase(String.valueOf(d.getCantidad()), fontNormal)));
+                    
+                    String desc = d.getProductoTalla().getProducto().getNombre() 
+                            + " (Talla: " + d.getProductoTalla().getTalla().getNombre() + ")";
+                    table.addCell(new PdfPCell(new Phrase(desc, fontNormal)));
+                    table.addCell(new PdfPCell(new Phrase("S/ " + d.getPrecio(), fontNormal)));
+                    table.addCell(new PdfPCell(new Phrase("S/ " + d.getSubtotal(), fontNormal)));
+                }
+            }
+            document.add(table);
+            document.add(new Paragraph("\n"));
+
+           
             BigDecimal totalVenta = venta.getTotal() != null ? venta.getTotal() : BigDecimal.ZERO;
             BigDecimal gravada = totalVenta.divide(new BigDecimal("1.18"), 2, RoundingMode.HALF_UP);
             BigDecimal igv = totalVenta.subtract(gravada);
 
-            parameters.put("op_gravada", gravada);
-            parameters.put("igv", igv);
-            parameters.put("total", totalVenta);
-
-            var detalleDS = venta.getDetalles().stream().map(d -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("cantidad", d.getCantidad()); 
-                
-                String descripcionPremium = d.getProductoTalla().getProducto().getNombre() 
-                        + " (Talla: " + d.getProductoTalla().getTalla().getNombre() + ")";
-                
-                map.put("descripcion", descripcionPremium);
-                map.put("precio", d.getPrecio());
-                map.put("subtotal", d.getSubtotal());
-                return map;
-            }).collect(Collectors.toList());
-
-            parameters.put("ItemDataSource", new JRBeanCollectionDataSource(detalleDS));
-
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JRBeanCollectionDataSource(detalleDS));
+            document.add(new Paragraph("Op. Gravada: S/ " + gravada, fontNormal));
+            document.add(new Paragraph("I.G.V. (18%): S/ " + igv, fontNormal));
             
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            JasperExportManager.exportReportToPdfStream(jasperPrint, byteArrayOutputStream);
-            
+            Paragraph pTotal = new Paragraph("TOTAL GENERAL: S/ " + totalVenta, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12));
+            document.add(pTotal);
+
+            document.close();
             return byteArrayOutputStream.toByteArray();
 
         } catch (Exception e) {
-            System.err.println("ERROR CRÍTICO AL EXPORTAR BINARIO PDF DESDE SERVICE: " + e.getMessage());
+            System.err.println("ERROR CRÍTICO AL EXPORTAR BINARIO PDF DESDE SERVICE OPENPDF: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
