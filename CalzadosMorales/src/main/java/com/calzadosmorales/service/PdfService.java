@@ -16,28 +16,26 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class PdfService {
 
-    
-    private static final Color COLOR_PRIMARIO       = new Color(30, 58, 95);    
-    private static final Color COLOR_ACENTO         = new Color(212, 160, 23); 
-    private static final Color COLOR_HEADER_TABLA  = new Color(236, 240, 245); 
-    private static final Color COLOR_FILA_PAR      = new Color(250, 251, 253);
-    private static final Color COLOR_BORDE_RECUADRO= new Color(30, 58, 95);    
-    private static final Color COLOR_TEXTO_SUAVE   = new Color(100, 110, 125); 
 
- 
-    private static final Font FONT_EMPRESA_NOMBRE  = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, COLOR_PRIMARIO);
-    private static final Font FONT_EMPRESA_DATOS   = FontFactory.getFont(FontFactory.HELVETICA, 8, COLOR_TEXTO_SUAVE);
-    private static final Font FONT_COMP_TIPO       = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, COLOR_PRIMARIO);
-    private static final Font FONT_COMP_NUMERO     = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, COLOR_ACENTO);
-    private static final Font FONT_LABEL           = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, COLOR_TEXTO_SUAVE);
-    private static final Font FONT_VALOR           = FontFactory.getFont(FontFactory.HELVETICA, 9, Color.BLACK);
-    private static final Font FONT_TABLA_HEADER    = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, COLOR_PRIMARIO);
-    private static final Font FONT_TABLA_BODY      = FontFactory.getFont(FontFactory.HELVETICA, 9, Color.BLACK);
-    private static final Font FONT_TOTAL_LABEL     = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_TEXTO_SUAVE);
-    private static final Font FONT_TOTAL_VALOR     = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, Color.BLACK);
-    private static final Font FONT_GRAND_TOTAL_LBL = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, COLOR_PRIMARIO);
-    private static final Font FONT_GRAND_TOTAL_VAL = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, COLOR_PRIMARIO);
-    private static final Font FONT_PIE             = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8, COLOR_TEXTO_SUAVE);
+    private static final Color COLOR_NEGRO          = new Color(0, 0, 0);       
+    private static final Color COLOR_GRIS_OSCURO    = new Color(80, 80, 80);    
+    private static final Color COLOR_HEADER_TABLA  = new Color(225, 225, 225); 
+    private static final Color COLOR_FILA_PAR      = new Color(245, 245, 245); 
+
+   
+    private static final Font FONT_EMPRESA_NOMBRE  = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, COLOR_NEGRO);
+    private static final Font FONT_EMPRESA_DATOS   = FontFactory.getFont(FontFactory.HELVETICA, 8, COLOR_GRIS_OSCURO);
+    private static final Font FONT_COMP_TIPO       = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, COLOR_NEGRO);
+    private static final Font FONT_COMP_NUMERO     = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, COLOR_NEGRO);
+    private static final Font FONT_LABEL           = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, COLOR_GRIS_OSCURO);
+    private static final Font FONT_VALOR           = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_NEGRO);
+    private static final Font FONT_TABLA_HEADER    = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, COLOR_NEGRO);
+    private static final Font FONT_TABLA_BODY      = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_NEGRO);
+    private static final Font FONT_TOTAL_LABEL     = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_GRIS_OSCURO);
+    private static final Font FONT_TOTAL_VALOR     = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, COLOR_NEGRO);
+    private static final Font FONT_GRAND_TOTAL_LBL = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, COLOR_NEGRO);
+    private static final Font FONT_GRAND_TOTAL_VAL = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, COLOR_NEGRO);
+    private static final Font FONT_PIE             = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8, COLOR_GRIS_OSCURO);
 
     public void exportarVentaPDF(HttpServletResponse response, Venta venta) {
         try {
@@ -57,7 +55,7 @@ public class PdfService {
 
     public byte[] obtenerVentaPDFBytes(Venta venta) {
         try {
-            
+         
             System.setProperty("java.awt.headless", "true");
 
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -65,7 +63,6 @@ public class PdfService {
             PdfWriter.getInstance(document, byteArrayOutputStream);
             document.open();
 
-            
             String tipoComp = venta.getTipoComprobante() != null ? venta.getTipoComprobante().toUpperCase() : "COMPROBANTE";
             String serie   = venta.getSerie() != null ? venta.getSerie() : "B001";
             String numero  = venta.getNumero() != null ? venta.getNumero() : "000001";
@@ -76,7 +73,7 @@ public class PdfService {
             tablaEncabezado.setWidths(new float[]{60f, 40f});
             tablaEncabezado.setSpacingAfter(4f);
 
-            
+           
             PdfPCell celdaEmpresa = new PdfPCell();
             celdaEmpresa.setBorder(Rectangle.NO_BORDER);
             celdaEmpresa.setPaddingBottom(6f);
@@ -89,23 +86,23 @@ public class PdfService {
             celdaEmpresa.addElement(new Paragraph("Tel: 943 291 489  |  contacto@calzadosmorales.com", FONT_EMPRESA_DATOS));
             tablaEncabezado.addCell(celdaEmpresa);
 
-           
+         
             PdfPCell celdaComp = new PdfPCell();
-            celdaComp.setBorderColor(COLOR_BORDE_RECUADRO);
-            celdaComp.setBorderWidth(1.5f);
+            celdaComp.setBorderColor(COLOR_NEGRO);
+            celdaComp.setBorderWidth(1f); 
             celdaComp.setPadding(10f);
             celdaComp.setHorizontalAlignment(Element.ALIGN_CENTER);
 
-            Paragraph pTipoComp = new Paragraph(tipoComp, FONT_COMP_TIPO);
+            Paragraph pTipoComp = new Paragraph(tipoComp + " ELECTRÓNICA", FONT_COMP_TIPO);
             pTipoComp.setAlignment(Element.ALIGN_CENTER);
             celdaComp.addElement(pTipoComp);
 
-          
+            
             PdfPTable lineaInterna = new PdfPTable(1);
             lineaInterna.setWidthPercentage(80);
             PdfPCell lineaCell = new PdfPCell();
             lineaCell.setBorderWidthBottom(1f);
-            lineaCell.setBorderColorBottom(COLOR_ACENTO);
+            lineaCell.setBorderColorBottom(COLOR_NEGRO);
             lineaCell.setBorderWidthTop(0); lineaCell.setBorderWidthLeft(0); lineaCell.setBorderWidthRight(0);
             lineaCell.setFixedHeight(4f);
             lineaInterna.addCell(lineaCell);
@@ -119,10 +116,10 @@ public class PdfService {
             tablaEncabezado.addCell(celdaComp);
             document.add(tablaEncabezado);
 
-            document.add(crearLineaDivisoria(COLOR_PRIMARIO, 1.5f));
+            document.add(crearLineaDivisoria(COLOR_NEGRO, 1f));
             document.add(new Paragraph(" "));
 
-            
+      
             String nombreCliente = "Cliente General";
             String docCliente    = "S/D";
             String labelDoc      = "DNI";
@@ -160,10 +157,10 @@ public class PdfService {
 
             document.add(tablaCliente);
 
-            document.add(crearLineaDivisoria(COLOR_ACENTO, 0.8f));
+            document.add(crearLineaDivisoria(COLOR_GRIS_OSCURO, 0.5f));
             document.add(new Paragraph(" "));
 
-            
+            // ── 3. TABLA DE ÍTEMS ──
             PdfPTable tablaItems = new PdfPTable(4);
             tablaItems.setWidthPercentage(100);
             tablaItems.setWidths(new float[]{8f, 52f, 18f, 22f});
@@ -171,7 +168,7 @@ public class PdfService {
             tablaItems.setHeaderRows(1);
 
             tablaItems.addCell(crearCeldaHeader("CANT.", Element.ALIGN_CENTER));
-            tablaItems.addCell(crearCeldaHeader("DESCRIPCIÓN DEL MODELO", Element.ALIGN_LEFT));
+            tablaItems.addCell(crearCeldaHeader("DESCRIPCIÓN", Element.ALIGN_LEFT));
             tablaItems.addCell(crearCeldaHeader("P. UNIT.", Element.ALIGN_RIGHT));
             tablaItems.addCell(crearCeldaHeader("SUBTOTAL", Element.ALIGN_RIGHT));
 
@@ -186,7 +183,6 @@ public class PdfService {
                             + " — Talla: " + d.getProductoTalla().getTalla().getNombre();
                     PdfPCell cDesc    = crearCeldaBody(desc, Element.ALIGN_LEFT, bgFila);
                     
-                  
                     PdfPCell cPrecio  = crearCeldaBody("S/ " + d.getPrecio().setScale(2, RoundingMode.HALF_UP).toString(), Element.ALIGN_RIGHT, bgFila);
                     PdfPCell cSubtot  = crearCeldaBody("S/ " + d.getSubtotal().setScale(2, RoundingMode.HALF_UP).toString(), Element.ALIGN_RIGHT, bgFila);
 
@@ -199,9 +195,9 @@ public class PdfService {
             }
             document.add(tablaItems);
 
-            document.add(crearLineaDivisoria(COLOR_PRIMARIO, 0.5f));
+            document.add(crearLineaDivisoria(COLOR_NEGRO, 0.5f));
 
-          
+            // ── 4. BLOQUE DE TOTALES ──
             BigDecimal totalVenta = venta.getTotal() != null ? venta.getTotal() : BigDecimal.ZERO;
             BigDecimal gravada    = totalVenta.divide(new BigDecimal("1.18"), 2, RoundingMode.HALF_UP);
             BigDecimal igv        = totalVenta.subtract(gravada).setScale(2, RoundingMode.HALF_UP);
@@ -216,9 +212,9 @@ public class PdfService {
             agregarFilaTotalNormal(tablaTotales, "Op. Gravada",  "S/ " + gravada.toPlainString());
             agregarFilaTotalNormal(tablaTotales, "I.G.V. (18%)", "S/ " + igv.toPlainString());
 
-            PdfPCell sepL = new PdfPCell(); sepL.setBorderWidthTop(1f); sepL.setBorderColorTop(COLOR_PRIMARIO);
+            PdfPCell sepL = new PdfPCell(); sepL.setBorderWidthTop(1f); sepL.setBorderColorTop(COLOR_NEGRO);
             sepL.setBorderWidthBottom(0); sepL.setBorderWidthLeft(0); sepL.setBorderWidthRight(0); sepL.setFixedHeight(5f);
-            PdfPCell sepR = new PdfPCell(); sepR.setBorderWidthTop(1f); sepR.setBorderColorTop(COLOR_PRIMARIO);
+            PdfPCell sepR = new PdfPCell(); sepR.setBorderWidthTop(1f); sepR.setBorderColorTop(COLOR_NEGRO);
             sepR.setBorderWidthBottom(0); sepR.setBorderWidthLeft(0); sepR.setBorderWidthRight(0); sepR.setFixedHeight(5f);
             tablaTotales.addCell(sepL);
             tablaTotales.addCell(sepR);
@@ -235,10 +231,10 @@ public class PdfService {
             tablaTotales.addCell(cGtValor);
             document.add(tablaTotales);
 
-           
-            document.add(crearLineaDivisoria(COLOR_ACENTO, 0.6f));
+            // ── 5. PIE DE PÁGINA ──
+            document.add(crearLineaDivisoria(COLOR_GRIS_OSCURO, 0.5f));
 
-            Paragraph piePag = new Paragraph("Gracias por confiar en Calzados Morales. ¡Camina con estilo!", FONT_PIE);
+            Paragraph piePag = new Paragraph("Gracias por su preferencia. Calzados Morales, camina con estilo.", FONT_PIE);
             piePag.setAlignment(Element.ALIGN_CENTER);
             piePag.setSpacingBefore(8f);
             document.add(piePag);
@@ -247,13 +243,13 @@ public class PdfService {
             return byteArrayOutputStream.toByteArray();
 
         } catch (Exception e) {
-            System.err.println("ERROR AL GENERAR COMPROBANTE EMITIDO: " + e.getMessage());
+            System.err.println("ERROR AL GENERAR COMPROBANTE EMITIDO B/N: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
     }
 
-   
+    // ─── Métodos Auxiliares de Estructura Monocromática ──────────────────────────
     private PdfPTable crearLineaDivisoria(Color color, float grosor) throws DocumentException {
         PdfPTable linea = new PdfPTable(1);
         linea.setWidthPercentage(100);
@@ -284,7 +280,7 @@ public class PdfService {
         cell.setBackgroundColor(COLOR_HEADER_TABLA);
         cell.setHorizontalAlignment(alineacion);
         cell.setPadding(6f);
-        cell.setBorderColor(new Color(200, 210, 220));
+        cell.setBorderColor(new Color(180, 180, 180)); 
         cell.setBorderWidth(0.5f);
         return cell;
     }
@@ -294,7 +290,7 @@ public class PdfService {
         cell.setBackgroundColor(bgColor);
         cell.setHorizontalAlignment(alineacion);
         cell.setPadding(5f);
-        cell.setBorderColor(new Color(220, 225, 232));
+        cell.setBorderColor(new Color(210, 210, 210)); 
         cell.setBorderWidth(0.3f);
         return cell;
     }
